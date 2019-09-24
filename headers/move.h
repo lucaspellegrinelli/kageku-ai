@@ -1,6 +1,17 @@
+#ifndef MOVE_H
+#define MOVE_H
+
 #include <iostream>
 
 #include "defs.h"
+
+// Class responsible for storing the states of the game before a move for
+// undoing it
+class MoveInfo{
+  int move;
+  int fifty_move_counter;
+  U64 position_key;
+};
 
 class Move{
 private:
@@ -30,3 +41,5 @@ public:
 
   void print();
 };
+
+#endif

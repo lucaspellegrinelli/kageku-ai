@@ -9,13 +9,8 @@
 #include "defs.h"
 #include "macros.h"
 
+#include "move.h"
 #include "bitboard.h"
-
-class MoveInfo{
-  int move;
-  int fifty_move_counter;
-  U64 position_key;
-};
 
 class Board{
 private:
