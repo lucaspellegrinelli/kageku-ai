@@ -17,6 +17,10 @@ MoveList Board::generate_all_moves(){
 }
 
 bool Board::is_square_attacked(int sq, int side){
+  ASSERT(IS_SQUARE_ON_BOARD(sq));
+  ASSERT(IS_SIDE_VALID(side));
+  ASSERT(this->check_board());
+
   // Pawns
   if(side == WHITE){
     if(this->pieces[sq - 11] == wP || this->pieces[sq - 9] == wP) return true;
