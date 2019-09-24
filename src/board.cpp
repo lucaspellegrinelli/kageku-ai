@@ -175,25 +175,27 @@ bool Board::check_board(){
 }
 
 void Board::print(){
+  std::ostream boardcout(std::cout.rdbuf());
+
   for(int r = RANK_8; r >= RANK_1; r--){
-    std::cout << r + 1 << " ";
+    boardcout << r + 1 << " ";
     for(int f = FILE_A; f <= FILE_H; f++){
       int sq = FILE_RANK_TO_SQUARE(f, r);
       int piece = this->pieces[sq];
-      std::cout << std::setw(2) << PIECE_CHARS[piece];
+      boardcout << std::setw(2) << PIECE_CHARS[piece];
     }
 
-    std::cout << std::endl;
+    boardcout << std::endl;
   }
 
-  std::cout << std::endl << "  ";
+  boardcout << std::endl << "  ";
   for(int f = FILE_A; f <= FILE_H; f++){
-    std::cout << std::setw(2) << (char)('a' + f);
+    boardcout << std::setw(2) << (char)('a' + f);
   }
-  std::cout << std::endl << std::endl;
+  boardcout << std::endl << std::endl;
 
-  std::cout << "Side: " << COLOR_CHARS[this->side_to_move] << std::endl;
-  std::cout << "Position Key: " << std::hex << std::uppercase << this->position_key << std::endl;
+  boardcout << "Side: " << COLOR_CHARS[this->side_to_move] << std::endl;
+  boardcout << "Position Key: " << std::hex << std::uppercase << this->position_key << std::endl;
 }
 
 void Board::set_fen(char *fen){
