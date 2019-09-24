@@ -10,6 +10,11 @@ Move::Move(int move){
   this->score = 0;
 }
 
+Move::Move(int move, int score){
+  this->move = move;
+  this->score = score;
+}
+
 int Move::get_from(){
   return this->move & 0x7F;
 }

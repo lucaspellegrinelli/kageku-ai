@@ -34,6 +34,7 @@ private:
 public:
   Move();
   Move(int move);
+  Move(int move, int score);
 
   int get_from();
   int get_to();

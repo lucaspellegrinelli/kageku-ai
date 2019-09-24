@@ -10,6 +10,12 @@ Board::Board(){
   this->update_lists_material();
 }
 
+MoveList Board::generate_all_moves(){
+  MoveList list;
+
+  return list;
+}
+
 bool Board::is_square_attacked(int sq, int side){
   // Pawns
   if(side == WHITE){

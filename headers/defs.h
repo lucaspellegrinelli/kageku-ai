@@ -12,6 +12,9 @@ typedef unsigned long long U64;
 // Maximum number of moves a game can have
 #define MAX_GAME_MOVES 2048
 
+// Maximum number of possible moves per position
+#define MAX_POSITION_MOVES 256
+
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
 enum{WHITE, BLACK, BOTH};

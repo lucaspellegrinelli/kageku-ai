@@ -10,6 +10,7 @@
 #include "macros.h"
 
 #include "move.h"
+#include "move_list.h"
 #include "bitboard.h"
 
 class Board{
@@ -81,6 +82,8 @@ private:
 
 public:
   Board();
+
+  MoveList generate_all_moves();
 
   bool is_square_attacked(int sq, int side);
 
