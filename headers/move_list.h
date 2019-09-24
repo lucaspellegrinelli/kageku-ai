@@ -1,8 +1,10 @@
 #ifndef MOVE_LIST_H
 #define MOVE_LIST_H
 
-#include "move.h"
 #include "defs.h"
+#include "macros.h"
+
+#include "move.h"
 
 class MoveList{
 public:

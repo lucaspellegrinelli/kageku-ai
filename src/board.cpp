@@ -15,47 +15,93 @@ MoveList Board::generate_all_moves(){
 
   MoveList list;
   int side = this->side_to_move;
+  int opp_side = (side == WHITE ? BLACK : WHITE);
 
-  if(side == WHITE){
-    for(int pawn_i = 0; pawn_i < this->piece_count[wP]; pawn_i++){
-      int sq = this->piece_list[wP][pawn_i];
-      ASSERT(IS_SQUARE_ON_BOARD(sq));
+  int forward_dir = (side == WHITE ? 1 : -1);
+  int pawn_code = (side == WHITE ? wP : bP);
 
-      int forward_sq = sq + 10;
-      if(this->pieces[forward_sq] == EMPTY){ // If there's no piece in front of the pawn
-        list.add_quiet_move(sq, forward_sq);
-      }
+  // Pawn move list
+  for(int pawn_i = 0; pawn_i < this->piece_count[pawn_code]; pawn_i++){
+    int sq = this->piece_list[pawn_code][pawn_i];
+    ASSERT(IS_SQUARE_ON_BOARD(sq));
 
-      int diag_left_sq = sq + 11;
-      int diag_right_sq = sq + 9;
-      if(IS_SQUARE_ON_BOARD(diag_left_sq) && PIECE_COLOR[this->pieces[diag_left_sq]] == BLACK){ // If can eat diag left
-        list.add_capture_move(sq, diag_left_sq, this->pieces[diag_left_sq]);
-      }
+    int forward_sq = sq + 10 * forward_dir;
+    if(this->pieces[forward_sq] == EMPTY){ // If there's no piece in front of the pawn
+      list.add_quiet_move(sq, forward_sq);
+    }
 
-      if(IS_SQUARE_ON_BOARD(diag_right_sq) && PIECE_COLOR[this->pieces[diag_right_sq]] == BLACK){ // If can eat diag right
-        list.add_capture_move(sq, diag_right_sq, this->pieces[diag_right_sq]);
+    int diag_sq[2] = {sq + 9 * forward_dir, sq + 11 * forward_dir};
+    for(int diag : diag_sq){
+      if(IS_SQUARE_ON_BOARD(diag) && PIECE_COLOR[this->pieces[diag]] == opp_side){ // If can eat diag
+        list.add_capture_move(sq, diag, this->pieces[diag]);
       }
     }
-  }else if(side == BLACK){
-    for(int pawn_i = 0; pawn_i < this->piece_count[bP]; pawn_i++){
-      int sq = this->piece_list[bP][pawn_i];
+  }
+
+  const int loop_slide_index[2] = {0, 4}; // loop_slide_pieces[loop_slide_index[BLACK]] = bB
+  const int loop_slide_pieces[8] = {wB, wR, wQ, 0, bB, bR, bQ, 0};
+  const int loop_non_slide_index[2] = {0, 3}; // loop_non_slide_pieces[loop_non_slide_index[BLACK]] = bN
+  const int loop_non_slide_pieces[6] = {wN, wK, 0, bN, bK, 0};
+
+  // Slider pieces
+  int piece_index = loop_slide_index[side];
+  int piece = loop_slide_pieces[piece_index++];
+  while(piece != 0){
+    ASSERT(IS_PIECE_VALID(piece));
+
+    for(int piece_i = 0; piece_i < this->piece_count[piece]; piece_i++){
+      int sq = this->piece_list[piece][piece_i];
       ASSERT(IS_SQUARE_ON_BOARD(sq));
 
-      int forward_sq = sq - 10;
-      if(this->pieces[forward_sq] == EMPTY){ // If there's no piece in front of the pawn
-        list.add_quiet_move(sq, forward_sq);
-      }
+      for(int dir_i = 0; dir_i < PIECE_DIR_COUNT[piece]; dir_i++){
+        int dir = PIECES_DIR[piece][dir_i];
+        int t_sq = sq + dir;
 
-      int diag_left_sq = sq - 11;
-      int diag_right_sq = sq - 9;
-      if(IS_SQUARE_ON_BOARD(diag_left_sq) && PIECE_COLOR[this->pieces[diag_left_sq]] == WHITE){ // If can eat diag left
-        list.add_capture_move(sq, diag_left_sq, this->pieces[diag_left_sq]);
-      }
+        while(IS_SQUARE_ON_BOARD(t_sq)){
+          if(this->pieces[t_sq] != EMPTY){
+            if(PIECE_COLOR[this->pieces[t_sq]] == opp_side){
+               list.add_capture_move(sq, t_sq, this->pieces[t_sq]);
+            }
+            break;
+          }else{
+            list.add_quiet_move(sq, t_sq);
+          }
 
-      if(IS_SQUARE_ON_BOARD(diag_right_sq) && PIECE_COLOR[this->pieces[diag_right_sq]] == WHITE){ // If can eat diag right
-        list.add_capture_move(sq, diag_right_sq, this->pieces[diag_right_sq]);
+          t_sq += dir;
+        }
       }
     }
+
+    piece = loop_slide_pieces[piece_index++];
+  }
+
+  // Non-Slider pieces
+  piece_index = loop_non_slide_index[side];
+  piece = loop_non_slide_pieces[piece_index++];
+  while(piece != 0){
+    ASSERT(IS_PIECE_VALID(piece));
+
+    for(int piece_i = 0; piece_i < this->piece_count[piece]; piece_i++){
+      int sq = this->piece_list[piece][piece_i];
+      ASSERT(IS_SQUARE_ON_BOARD(sq));
+
+      for(int dir_i = 0; dir_i < PIECE_DIR_COUNT[piece]; dir_i++){
+        int dir = PIECES_DIR[piece][dir_i];
+        int t_sq = sq + dir;
+
+        if(IS_SQUARE_OFFBOARD(t_sq)) continue;
+
+        if(this->pieces[t_sq] != EMPTY){
+          if(PIECE_COLOR[this->pieces[t_sq]] == opp_side){
+             list.add_capture_move(sq, t_sq, this->pieces[t_sq]);
+          }
+        }else{
+          list.add_quiet_move(sq, t_sq);
+        }
+      }
+    }
+
+    piece = loop_non_slide_pieces[piece_index++];
   }
 
   return list;
@@ -332,6 +378,7 @@ void Board::reset(){
     this->not_pawn_piece_count[i] = 0;
     this->major_piece_count[i] = 0;
     this->minor_piece_count[i] = 0;
+    this->material[i] = 0;
   }
 
   for(int i = 0; i < COLOR_COUNT + 1; i++){
@@ -344,9 +391,6 @@ void Board::reset(){
 
   this->king_square[WHITE] = NO_SQUARE;
   this->king_square[BLACK] = NO_SQUARE;
-
-  this->material[WHITE] = 0;
-  this->material[BLACK] = 0;
 
   this->side_to_move = BOTH;
   this->fifty_move_counter = 0;

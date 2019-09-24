@@ -5,10 +5,17 @@ MoveList::MoveList(){
 }
 
 void MoveList::add_quiet_move(int from, int to){
+  ASSERT(IS_SQUARE_ON_BOARD(from));
+  ASSERT(IS_SQUARE_ON_BOARD(to));
+  
   this->moves[this->count++] = Move(from, to, EMPTY);
 }
 
 void MoveList::add_capture_move(int from, int to, int captured){
+  ASSERT(IS_SQUARE_ON_BOARD(from));
+  ASSERT(IS_SQUARE_ON_BOARD(to));
+  ASSERT(IS_PIECE_VALID_OR_EMPTY(captured));
+
   this->moves[this->count++] = Move(from, to, captured);
 }
 

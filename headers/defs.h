@@ -26,10 +26,29 @@ enum{EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
 const char PIECE_CHARS[] = ".PNBRQKpnbrqk";
 
 // Defines the direction each piece moves
+const int EMPTY_DIR[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+const int PAWN_DIR[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 const int KNIGHT_DIR[8] = {-8, -19, -21, 12, 8, 19, 21, 12};
-const int ROOK_DIR[4] = {-1, -10, 1, 10};
-const int BISHOP_DIR[4] = {-9, -11, 11, 9};
+const int ROOK_DIR[8] = {-1, -10, 1, 10, 0, 0, 0, 0};
+const int BISHOP_DIR[8] = {-9, -11, 11, 9, 0, 0, 0, 0};
+const int QUEEN_DIR[8] = {-1, -10, 1, 10, -9, -11, 11, 9};
 const int KING_DIR[8] = {-1, -10, 1, 10, -9, -11, 11, 9};
+const int PIECE_DIR_COUNT[13] = {0, 0, 8, 4, 4, 8, 8, 0, 8, 4, 4, 8, 8}; // How many directions each piece has
+const int PIECES_DIR[13][8] = {
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {-8, -19, -21, 12, 8, 19, 21, 12},
+  {-9, -11, 11, 9, 0, 0, 0, 0},
+  {-1, -10, 1, 10, 0, 0, 0, 0},
+  {-1, -10, 1, 10, -9, -11, 11, 9},
+  {-1, -10, 1, 10, -9, -11, 11, 9},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {-8, -19, -21, 12, 8, 19, 21, 12},
+  {-9, -11, 11, 9, 0, 0, 0, 0},
+  {-1, -10, 1, 10, 0, 0, 0, 0},
+  {-1, -10, 1, 10, -9, -11, 11, 9},
+  {-1, -10, 1, 10, -9, -11, 11, 9}
+};
 
 // Defines which are the major pieces, minor pieces ...
 const int NON_PAWN_PIECES[] = {false, false, true, true, true, true, true, false, true, true, true, true, true};
@@ -42,6 +61,7 @@ const int IS_PIECE_KNIGHT[13] = {false, false, true, false, false, false, false,
 const int IS_PIECE_KING[13] = {false, false, false, false, false, false, true, false, false, false, false, false, true};
 const int IS_PIECE_ROOK_QUEEN[13] = {false, false, false, false, true, true, false, false, false, false, true, true, false};
 const int IS_PIECE_BISHOP_QUEEN[13] = {false, false, false, true, false, true, false, false, false, true, false, true, false};
+const int IS_SLIDER_PIECE[13] = {false, false, false, true, true, true, false, false, false, true, true, true, false};
 
 // Defines values for each piece
 const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000};
