@@ -87,10 +87,10 @@ MoveList Board::generate_all_moves(){
 
   unchecked_positions[0] = this->king_square[side];
 
-  int add_pos_count = 0;
-  int unchecked_pos_count = 1;
+  int add_count = 0;
+  int unchecked_count = 1;
 
-  for(int i = 0; i < unchecked_pos_count; i++){
+  for(int i = 0; i < unchecked_count; i++){
     int pos = unchecked_positions[i];
     int adj[4] = {pos + 10, pos - 10, pos + 1, pos - 1};
 
@@ -99,15 +99,15 @@ MoveList Board::generate_all_moves(){
         int piece = this->pieces[adj_pos];
 
         if(!position_status[adj_pos]){
-          if(piece == EMPTY) addable_positions[add_pos_count++] = adj_pos;
-          else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_pos_count++] = adj_pos;
+          if(piece == EMPTY) addable_positions[add_count++] = adj_pos;
+          else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_count++] = adj_pos;
           position_status[adj_pos] = true;
         }
       }
     }
   }
 
-  for(int i = 0; i < add_pos_count; i++){
+  for(int i = 0; i < add_count; i++){
     char pos_str[2] = {
       (char)('a' + SQUARE_FILE[addable_positions[i]]),
       (char)('1' + SQUARE_RANK[addable_positions[i]])
