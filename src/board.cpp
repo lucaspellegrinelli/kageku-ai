@@ -14,11 +14,17 @@ MoveList Board::generate_all_moves(){
   ASSERT(this->check_board());
 
   MoveList list;
+
   int side = this->side_to_move;
   int opp_side = (side == WHITE ? BLACK : WHITE);
 
+  const int side_pieces[2][6] = {
+    {wP, wN, wB, wR, wQ, wK},
+    {bP, bN, bB, bR, bQ, bK}
+  };
+
   int forward_dir = (side == WHITE ? 1 : -1);
-  int pawn_code = (side == WHITE ? wP : bP);
+  int pawn_code = side_pieces[side][0];
 
   // Pawn move list
   for(int pawn_i = 0; pawn_i < this->piece_count[pawn_code]; pawn_i++){
@@ -37,11 +43,6 @@ MoveList Board::generate_all_moves(){
       }
     }
   }
-
-  const int side_pieces[2][6] = {
-    {wP, wN, wB, wR, wQ, wK},
-    {bP, bN, bB, bR, bQ, bK}
-  };
 
   // Other pieces
   for(int piece : side_pieces[side]){
@@ -73,6 +74,45 @@ MoveList Board::generate_all_moves(){
         }
       }
     }
+  }
+
+  // Piece adds
+  int addable_positions[MAX_POSITION_MOVES];
+  int unchecked_positions[BOARD_SQ_NUM];
+  bool position_status[BOARD_SQ_NUM];
+
+  for(int i = 0; i < MAX_POSITION_MOVES; addable_positions[i++] = -1);
+  for(int i = 0; i < BOARD_SQ_NUM; unchecked_positions[i++] = -1);
+  for(int i = 0; i < BOARD_SQ_NUM; position_status[i++] = false);
+
+  unchecked_positions[0] = this->king_square[side];
+
+  int add_pos_count = 0;
+  int unchecked_pos_count = 1;
+
+  for(int i = 0; i < unchecked_pos_count; i++){
+    int pos = unchecked_positions[i];
+    int adj[4] = {pos + 10, pos - 10, pos + 1, pos - 1};
+
+    for(int adj_pos : adj){
+      if(IS_SQUARE_ON_BOARD(adj_pos)){
+        int piece = this->pieces[adj_pos];
+
+        if(!position_status[adj_pos]){
+          if(piece == EMPTY) addable_positions[add_pos_count++] = adj_pos;
+          else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_pos_count++] = adj_pos;
+          position_status[adj_pos] = true;
+        }
+      }
+    }
+  }
+
+  for(int i = 0; i < add_pos_count; i++){
+    char pos_str[2] = {
+      (char)('a' + SQUARE_FILE[addable_positions[i]]),
+      (char)('1' + SQUARE_RANK[addable_positions[i]])
+    };
+    std::cout << "Can add on " << pos_str << std::endl;
   }
 
   return list;

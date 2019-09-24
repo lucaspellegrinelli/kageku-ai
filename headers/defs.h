@@ -70,6 +70,9 @@ const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550,
 // Defines pieces cost to play
 const int PIECE_COST[] = {0, 1, 2, 3, 4, 5, 10, 1, 2, 3, 4, 5, 10};
 
+// Defines pieces max count
+const int PIECE_MAX[] = {64, 8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
+
 // Flags for the files
 enum{FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE};
 const char FILE_CHARS[] = "abcdefgh";
