@@ -24,6 +24,7 @@ exit(1); \
 #define FILE_RANK_TO_SQUARE(f, r) ((21 + (f)) + ((r) * 10))
 
 // Validates some stuff
+#define IS_SQUARE_OFFBOARD(sq) (SQUARE_FILE[(sq)] == OFFBOARD)
 #define IS_SQUARE_ON_BOARD(sq) (SQUARE_FILE[(sq)] != OFFBOARD)
 #define IS_SIDE_VALID(side) ((side) == WHITE || (side) == BLACK)
 #define IS_FILE_RANK_VALID(fr) ((fr) >= 0 && fr <= 7)

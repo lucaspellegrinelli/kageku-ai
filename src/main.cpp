@@ -11,12 +11,7 @@ int main(){
   Board b;
   b.print();
 
-  int from_sq = H2;
-  int to_sq = H3;
-  int captured = wR;
-
-  int move = (from_sq) | (to_sq << 7) | (captured << 14);
-  Move m(move);
+  Move m(H2, H3, EMPTY);
   m.print();
 
   return 0;

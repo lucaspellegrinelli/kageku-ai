@@ -2,6 +2,7 @@
 #define MOVE_H
 
 #include <iostream>
+#include <string>
 
 #include "defs.h"
 
@@ -35,11 +36,15 @@ public:
   Move();
   Move(int move);
   Move(int move, int score);
+  Move(int from, int to, int captured);
+  Move(int from, int to, int captured, int score);
 
   int get_from();
   int get_to();
   int get_captured();
+  int get_score();
 
+  std::string get_repr();
   void print();
 };
 
