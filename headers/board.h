@@ -87,6 +87,8 @@ private:
 public:
   Board();
 
+  bool is_square_attacked(int sq, int side);
+
   void update_lists_material();
 
   bool check_board();

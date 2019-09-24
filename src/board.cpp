@@ -10,6 +10,61 @@ Board::Board(){
   this->update_lists_material();
 }
 
+bool Board::is_square_attacked(int sq, int side){
+  // Pawns
+  if(side == WHITE){
+    if(this->pieces[sq - 11] == wP || this->pieces[sq - 9] == wP) return true;
+  }else if(side == BLACK){
+    if(this->pieces[sq + 11] == bP || this->pieces[sq + 9] == bP) return true;
+  }
+
+  // Knights
+  for(int dir_i = 0; dir_i < 8; dir_i++){
+    int piece = this->pieces[sq + KNIGHT_DIR[dir_i]];
+    if(IS_PIECE_KNIGHT[piece] && PIECE_COLOR[piece] == side) return true;
+  }
+
+  // King
+  for(int dir_i = 0; dir_i < 8; dir_i++){
+    int piece = this->pieces[sq + KING_DIR[dir_i]];
+    if(IS_PIECE_KING[piece] && PIECE_COLOR[piece] == side) return true;
+  }
+
+  // Rook and Queen
+  for(int dir_i = 0; dir_i < 4; dir_i++){
+    int dir = ROOK_DIR[dir_i];
+    int t_sq = sq + dir;
+    int piece = this->pieces[t_sq];
+
+    while(piece != OFFBOARD){
+      if(piece != EMPTY){
+        if(IS_PIECE_ROOK_QUEEN[piece] && PIECE_COLOR[piece] == side) return true;
+        break;
+      }
+      t_sq += dir;
+      piece = this->pieces[t_sq];
+    }
+  }
+
+  // Bishop and Queen
+  for(int dir_i = 0; dir_i < 4; dir_i++){
+    int dir = BISHOP_DIR[dir_i];
+    int t_sq = sq + dir;
+    int piece = this->pieces[t_sq];
+
+    while(piece != OFFBOARD){
+      if(piece != EMPTY){
+        if(IS_PIECE_BISHOP_QUEEN[piece] && PIECE_COLOR[piece] == side) return true;
+        break;
+      }
+      t_sq += dir;
+      piece = this->pieces[t_sq];
+    }
+  }
+
+  return false;
+}
+
 void Board::update_lists_material(){
   for(int i = 0; i < BOARD_SQ_NUM; i++){
     int sq = i;

@@ -22,11 +22,23 @@ const char COLOR_CHARS[] = "wb-";
 enum{EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
 const char PIECE_CHARS[] = ".PNBRQKpnbrqk";
 
+// Defines the direction each piece moves
+const int KNIGHT_DIR[8] = {-8, -19, -21, 12, 8, 19, 21, 12};
+const int ROOK_DIR[4] = {-1, -10, 1, 10};
+const int BISHOP_DIR[4] = {-9, -11, 11, 9};
+const int KING_DIR[8] = {-1, -10, 1, 10, -9, -11, 11, 9};
+
 // Defines which are the major pieces, minor pieces ...
 const int NON_PAWN_PIECES[] = {false, false, true, true, true, true, true, false, true, true, true, true, true};
 const int MAJOR_PIECES[] = {false, false, false, false, true, true, true, false, false, false, true, true, true};
 const int MINOR_PIECES[] = {false, false, true, true, false, false, false, false, true, true, false, false, false};
 const int PIECE_COLOR[] = {BOTH, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK};
+
+// Define pieces identity
+const int IS_PIECE_KNIGHT[13] = {false, false, true, false, false, false, false, false, true, false, false, false, false};
+const int IS_PIECE_KING[13] = {false, false, false, false, false, false, true, false, false, false, false, false, true};
+const int IS_PIECE_ROOK_QUEEN[13] = {false, false, false, false, true, true, false, false, false, false, true, true, false};
+const int IS_PIECE_BISHOP_QUEEN[13] = {false, false, false, true, false, true, false, false, false, true, false, true, false};
 
 // Defines values for each piece
 const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000};
