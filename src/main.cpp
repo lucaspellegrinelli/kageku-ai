@@ -10,5 +10,7 @@ int main(){
   Board b;
   b.print();
 
+  ASSERT(b.check_board())
+
   return 0;
 }

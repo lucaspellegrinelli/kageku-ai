@@ -6,6 +6,117 @@ Board::Board(){
 
   char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
+
+  this->update_lists_material();
+}
+
+void Board::update_lists_material(){
+  for(int i = 0; i < BOARD_SQ_NUM; i++){
+    int sq = i;
+    int piece = this->pieces[i];
+    if(piece != OFFBOARD && piece != EMPTY){
+      int color = PIECE_COLOR[piece];
+
+      if(NON_PAWN_PIECES[piece]) this->not_pawn_piece_count[color]++;
+      if(MINOR_PIECES[piece]) this->minor_piece_count[color]++;
+      if(MAJOR_PIECES[piece]) this->major_piece_count[color]++;
+
+      this->material[color] += PIECE_VAL[piece];
+
+      this->piece_list[piece][this->piece_count[piece]] = sq;
+      this->piece_count[piece]++;
+
+      if(piece == wK) this->king_square[WHITE] = sq;
+      if(piece == bK) this->king_square[BLACK] = sq;
+
+      if(piece == wP){
+        this->pawns[WHITE].set_bit(square_from_120_board_to_64_board[sq]);
+        this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[sq]);
+      }else if(piece == bP){
+        this->pawns[BLACK].set_bit(square_from_120_board_to_64_board[sq]);
+        this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[sq]);
+      }
+    }
+  }
+}
+
+bool Board::check_board(){
+  int t_piece_count[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int t_non_pawn_piece[2] = {0, 0};
+  int t_major_piece[2] = {0, 0};
+  int t_minor_piece[2] = {0, 0};
+  int t_material[2] = {0, 0};
+
+  Bitboard t_pawns[3];
+  t_pawns[WHITE] = this->pawns[WHITE];
+  t_pawns[BLACK] = this->pawns[BLACK];
+  t_pawns[BOTH] = this->pawns[BOTH];
+
+  for(int t_piece = wP; t_piece <= bK; t_piece++){
+    for(int t_count = 0; t_count < this->piece_count[t_piece]; t_count++){
+      int sq120 = this->piece_list[t_piece][t_count];
+      ASSERT(this->pieces[sq120] == t_piece);
+    }
+  }
+
+  for(int sq64 = 0; sq64 < 64; sq64++){
+    int sq120 = square_from_64_board_to_120_board[sq64];
+    int t_piece = this->pieces[sq120];
+    t_piece_count[t_piece]++;
+    int color = PIECE_COLOR[t_piece];
+
+    if(NON_PAWN_PIECES[t_piece]) t_non_pawn_piece[color]++;
+    if(MINOR_PIECES[t_piece]) t_minor_piece[color]++;
+    if(MAJOR_PIECES[t_piece]) t_major_piece[color]++;
+
+    t_material[color] += PIECE_VAL[t_piece];
+  }
+
+  // Checks if the number of pieces is ok
+  for(int t_piece = wP; t_piece <= bK; t_piece++){
+    ASSERT(t_piece_count[t_piece] == this->piece_count[t_piece]);
+  }
+
+  // Checks if the pawn bitboard is ok
+  ASSERT(t_pawns[WHITE].count() == this->pawns[WHITE].count());
+  ASSERT(t_pawns[BLACK].count() == this->pawns[BLACK].count());
+  ASSERT(t_pawns[BOTH].count() == this->pawns[BOTH].count());
+
+  while(t_pawns[WHITE].bitboard){
+    int sq64 = t_pawns[WHITE].pop();
+    ASSERT(this->pieces[square_from_64_board_to_120_board[sq64]] == wP);
+  }
+
+  while(t_pawns[BLACK].bitboard){
+    int sq64 = t_pawns[BLACK].pop();
+    ASSERT(this->pieces[square_from_64_board_to_120_board[sq64]] == bP);
+  }
+
+  while(t_pawns[BOTH].bitboard){
+    int sq64 = t_pawns[BOTH].pop();
+    ASSERT(this->pieces[square_from_64_board_to_120_board[sq64]] == wP ||
+           this->pieces[square_from_64_board_to_120_board[sq64]] == bP);
+  }
+
+  // Assert material, major pieces...
+  ASSERT(t_material[WHITE] == this->material[WHITE]);
+  ASSERT(t_material[BLACK] == this->material[BLACK]);
+  ASSERT(t_non_pawn_piece[WHITE] == this->not_pawn_piece_count[WHITE]);
+  ASSERT(t_non_pawn_piece[BLACK] == this->not_pawn_piece_count[BLACK]);
+  ASSERT(t_major_piece[WHITE] == this->major_piece_count[WHITE]);
+  ASSERT(t_major_piece[BLACK] == this->major_piece_count[BLACK]);
+  ASSERT(t_minor_piece[WHITE] == this->minor_piece_count[WHITE]);
+  ASSERT(t_minor_piece[BLACK] == this->minor_piece_count[BLACK]);
+
+  // Assert key and side
+  ASSERT(this->side_to_move == WHITE || this->side_to_move == BLACK);
+  ASSERT(this->generate_position_key() == this->position_key);
+
+  // Assert king pos
+  ASSERT(this->pieces[this->king_square[WHITE]] == wK);
+  ASSERT(this->pieces[this->king_square[BLACK]] == bK);
+
+  return true;
 }
 
 void Board::print(){
@@ -105,11 +216,14 @@ void Board::reset(){
     this->pieces[square_from_64_board_to_120_board[i]] = EMPTY;
   }
 
-  for(int i = 0; i < COLOR_COUNT + 1; i++){
+  for(int i = 0; i < COLOR_COUNT; i++){
     this->not_pawn_piece_count[i] = 0;
     this->major_piece_count[i] = 0;
     this->minor_piece_count[i] = 0;
-    this->pawns[i] = 0ULL;
+  }
+
+  for(int i = 0; i < COLOR_COUNT + 1; i++){
+    this->pawns[i].reset();
   }
 
   for(int i = 0; i < PIECE_TYPES; i++){
@@ -118,6 +232,9 @@ void Board::reset(){
 
   this->king_square[WHITE] = NO_SQUARE;
   this->king_square[BLACK] = NO_SQUARE;
+
+  this->material[WHITE] = 0;
+  this->material[BLACK] = 0;
 
   this->side_to_move = BOTH;
   this->fifty_move_counter = 0;

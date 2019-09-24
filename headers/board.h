@@ -9,6 +9,8 @@
 #include "defs.h"
 #include "macros.h"
 
+#include "bitboard.h"
+
 class MoveInfo{
   int move;
   int fifty_move_counter;
@@ -25,7 +27,7 @@ private:
 
   // Each U64 will store a value of 0 or 1 for each bit of the board corresponding
   // to having a pawn there or not. One U64 number for each of the colors
-  U64 pawns[COLOR_COUNT + 1];
+  Bitboard pawns[COLOR_COUNT + 1];
 
   // Position of the kings for each color
   int king_square[COLOR_COUNT];
@@ -50,13 +52,16 @@ private:
   int piece_count[PIECE_TYPES];
 
   // How many of each of the pieces (except pawns) are there on the board
-  int not_pawn_piece_count[COLOR_COUNT + 1];
+  int not_pawn_piece_count[COLOR_COUNT];
 
   // How many Queens and Rooks are there for each team
-  int major_piece_count[COLOR_COUNT + 1];
+  int major_piece_count[COLOR_COUNT];
 
   // How many Bishops and Knights are there for each team
-  int minor_piece_count[COLOR_COUNT + 1];
+  int minor_piece_count[COLOR_COUNT];
+
+  // Material count for each team
+  int material[COLOR_COUNT];
 
   // Info about the moves played previously
   MoveInfo history[MAX_GAME_MOVES];
@@ -82,6 +87,9 @@ private:
 public:
   Board();
 
+  void update_lists_material();
+
+  bool check_board();
   void print();
 
   void set_fen(char *fen);

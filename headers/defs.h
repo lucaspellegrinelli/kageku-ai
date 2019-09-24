@@ -12,21 +12,35 @@ typedef unsigned long long U64;
 // Maximum number of moves a game can have
 #define MAX_GAME_MOVES 2048
 
+// Flags for colors (BOTH - Respresents pieces of either color)
+#define COLOR_COUNT 2
+enum{WHITE, BLACK, BOTH};
+const char COLOR_CHARS[] = "wb-";
+
 // Flags for each of the pieces
 #define PIECE_TYPES 13
 enum{EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
 const char PIECE_CHARS[] = ".PNBRQKpnbrqk";
 
-// Flags for the files and ranks
+// Defines which are the major pieces, minor pieces ...
+const int NON_PAWN_PIECES[] = {false, false, true, true, true, true, true, false, true, true, true, true, true};
+const int MAJOR_PIECES[] = {false, false, false, false, true, true, true, false, false, false, true, true, true};
+const int MINOR_PIECES[] = {false, false, true, true, false, false, false, false, true, true, false, false, false};
+const int PIECE_COLOR[] = {BOTH, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK};
+
+// Defines values for each piece
+const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000};
+
+// Defines pieces cost to play
+const int PIECE_COST[] = {0, 1, 2, 3, 4, 5, 10, 1, 2, 3, 4, 5, 10};
+
+// Flags for the files
 enum{FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE};
 const char FILE_CHARS[] = "abcdefgh";
+
+// Flags for the ranks
 enum{RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE};
 const char RANK_CHARS[] = "12345678";
-
-// Flags for colors (BOTH - Respresents pieces of either color)
-#define COLOR_COUNT 2
-enum{WHITE, BLACK, BOTH};
-const char COLOR_CHARS[] = "wb-";
 
 // Flags for the squares of the board
 enum{
@@ -65,6 +79,36 @@ const int square_from_64_board_to_120_board[64] = {
   71, 72, 73, 74, 75, 76, 77, 78,
   81, 82, 83, 84, 85, 86, 87, 88,
   91, 92, 93, 94, 95, 96, 97, 98,
+};
+
+const int SQUARE_FILE[BOARD_SQ_NUM] = {
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD,   FILE_A,   FILE_B,   FILE_C,   FILE_D,   FILE_E,   FILE_F,   FILE_G,   FILE_H, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD
+};
+
+const int SQUARE_RANK[BOARD_SQ_NUM] = {
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD,   RANK_1,   RANK_1,   RANK_1,   RANK_1,   RANK_1,   RANK_1,   RANK_1,   RANK_1, OFFBOARD,
+  OFFBOARD,   RANK_2,   RANK_2,   RANK_2,   RANK_2,   RANK_2,   RANK_2,   RANK_2,   RANK_2, OFFBOARD,
+  OFFBOARD,   RANK_3,   RANK_3,   RANK_3,   RANK_3,   RANK_3,   RANK_3,   RANK_3,   RANK_3, OFFBOARD,
+  OFFBOARD,   RANK_4,   RANK_4,   RANK_4,   RANK_4,   RANK_4,   RANK_4,   RANK_4,   RANK_4, OFFBOARD,
+  OFFBOARD,   RANK_5,   RANK_5,   RANK_5,   RANK_5,   RANK_5,   RANK_5,   RANK_5,   RANK_5, OFFBOARD,
+  OFFBOARD,   RANK_6,   RANK_6,   RANK_6,   RANK_6,   RANK_6,   RANK_6,   RANK_6,   RANK_6, OFFBOARD,
+  OFFBOARD,   RANK_7,   RANK_7,   RANK_7,   RANK_7,   RANK_7,   RANK_7,   RANK_7,   RANK_7, OFFBOARD,
+  OFFBOARD,   RANK_8,   RANK_8,   RANK_8,   RANK_8,   RANK_8,   RANK_8,   RANK_8,   RANK_8, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD,
+  OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD, OFFBOARD
 };
 
 #endif

@@ -26,6 +26,10 @@ void Bitboard::set_bit(int bit){
   this->bitboard |= (1ULL << bit);
 }
 
+void Bitboard::reset(){
+  this->bitboard = 0ULL;
+}
+
 void Bitboard::print(){
   std::cout << std::endl;
   for(int rank = RANK_8; rank >= RANK_1; rank--){

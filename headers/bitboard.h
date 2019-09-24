@@ -1,3 +1,6 @@
+#ifndef BITBOARD_H
+#define BITBOARD_H
+
 #include <iostream>
 
 #include "defs.h"
@@ -22,5 +25,9 @@ public:
   void clear_bit(int bit);
   void set_bit(int bit);
 
+  void reset();
+
   void print();
 };
+
+#endif
