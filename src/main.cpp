@@ -11,8 +11,7 @@ int main(){
   Board b;
   b.print();
 
-  Move m(H2, H3, EMPTY);
-  m.print();
+  b.generate_all_moves().print();
 
   return 0;
 }

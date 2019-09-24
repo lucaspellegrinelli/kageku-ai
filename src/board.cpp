@@ -11,7 +11,52 @@ Board::Board(){
 }
 
 MoveList Board::generate_all_moves(){
+  ASSERT(this->check_board());
+
   MoveList list;
+  int side = this->side_to_move;
+
+  if(side == WHITE){
+    for(int pawn_i = 0; pawn_i < this->piece_count[wP]; pawn_i++){
+      int sq = this->piece_list[wP][pawn_i];
+      ASSERT(IS_SQUARE_ON_BOARD(sq));
+
+      int forward_sq = sq + 10;
+      if(this->pieces[forward_sq] == EMPTY){ // If there's no piece in front of the pawn
+        list.add_quiet_move(sq, forward_sq);
+      }
+
+      int diag_left_sq = sq + 11;
+      int diag_right_sq = sq + 9;
+      if(IS_SQUARE_ON_BOARD(diag_left_sq) && PIECE_COLOR[this->pieces[diag_left_sq]] == BLACK){ // If can eat diag left
+        list.add_capture_move(sq, diag_left_sq, this->pieces[diag_left_sq]);
+      }
+
+      if(IS_SQUARE_ON_BOARD(diag_right_sq) && PIECE_COLOR[this->pieces[diag_right_sq]] == BLACK){ // If can eat diag right
+        list.add_capture_move(sq, diag_right_sq, this->pieces[diag_right_sq]);
+      }
+    }
+  }else if(side == BLACK){
+    for(int pawn_i = 0; pawn_i < this->piece_count[bP]; pawn_i++){
+      int sq = this->piece_list[bP][pawn_i];
+      ASSERT(IS_SQUARE_ON_BOARD(sq));
+
+      int forward_sq = sq - 10;
+      if(this->pieces[forward_sq] == EMPTY){ // If there's no piece in front of the pawn
+        list.add_quiet_move(sq, forward_sq);
+      }
+
+      int diag_left_sq = sq - 11;
+      int diag_right_sq = sq - 9;
+      if(IS_SQUARE_ON_BOARD(diag_left_sq) && PIECE_COLOR[this->pieces[diag_left_sq]] == WHITE){ // If can eat diag left
+        list.add_capture_move(sq, diag_left_sq, this->pieces[diag_left_sq]);
+      }
+
+      if(IS_SQUARE_ON_BOARD(diag_right_sq) && PIECE_COLOR[this->pieces[diag_right_sq]] == WHITE){ // If can eat diag right
+        list.add_capture_move(sq, diag_right_sq, this->pieces[diag_right_sq]);
+      }
+    }
+  }
 
   return list;
 }
