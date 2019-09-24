@@ -62,6 +62,7 @@ const int IS_PIECE_KING[13] = {false, false, false, false, false, false, true, f
 const int IS_PIECE_ROOK_QUEEN[13] = {false, false, false, false, true, true, false, false, false, false, true, true, false};
 const int IS_PIECE_BISHOP_QUEEN[13] = {false, false, false, true, false, true, false, false, false, true, false, true, false};
 const int IS_SLIDER_PIECE[13] = {false, false, false, true, true, true, false, false, false, true, true, true, false};
+const int IS_NON_SLIDER_PIECE[13] = {false, false, true, false, false, false, true, false, true, false, false, false, true};
 
 // Defines values for each piece
 const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000};

@@ -38,15 +38,13 @@ MoveList Board::generate_all_moves(){
     }
   }
 
-  const int loop_slide_index[2] = {0, 4}; // loop_slide_pieces[loop_slide_index[BLACK]] = bB
-  const int loop_slide_pieces[8] = {wB, wR, wQ, 0, bB, bR, bQ, 0};
-  const int loop_non_slide_index[2] = {0, 3}; // loop_non_slide_pieces[loop_non_slide_index[BLACK]] = bN
-  const int loop_non_slide_pieces[6] = {wN, wK, 0, bN, bK, 0};
+  const int side_pieces[2][6] = {
+    {wP, wN, wB, wR, wQ, wK},
+    {bP, bN, bB, bR, bQ, bK}
+  };
 
-  // Slider pieces
-  int piece_index = loop_slide_index[side];
-  int piece = loop_slide_pieces[piece_index++];
-  while(piece != 0){
+  // Other pieces
+  for(int piece : side_pieces[side]){
     ASSERT(IS_PIECE_VALID(piece));
 
     for(int piece_i = 0; piece_i < this->piece_count[piece]; piece_i++){
@@ -62,46 +60,19 @@ MoveList Board::generate_all_moves(){
             if(PIECE_COLOR[this->pieces[t_sq]] == opp_side){
                list.add_capture_move(sq, t_sq, this->pieces[t_sq]);
             }
-            break;
           }else{
             list.add_quiet_move(sq, t_sq);
           }
 
-          t_sq += dir;
-        }
-      }
-    }
-
-    piece = loop_slide_pieces[piece_index++];
-  }
-
-  // Non-Slider pieces
-  piece_index = loop_non_slide_index[side];
-  piece = loop_non_slide_pieces[piece_index++];
-  while(piece != 0){
-    ASSERT(IS_PIECE_VALID(piece));
-
-    for(int piece_i = 0; piece_i < this->piece_count[piece]; piece_i++){
-      int sq = this->piece_list[piece][piece_i];
-      ASSERT(IS_SQUARE_ON_BOARD(sq));
-
-      for(int dir_i = 0; dir_i < PIECE_DIR_COUNT[piece]; dir_i++){
-        int dir = PIECES_DIR[piece][dir_i];
-        int t_sq = sq + dir;
-
-        if(IS_SQUARE_OFFBOARD(t_sq)) continue;
-
-        if(this->pieces[t_sq] != EMPTY){
-          if(PIECE_COLOR[this->pieces[t_sq]] == opp_side){
-             list.add_capture_move(sq, t_sq, this->pieces[t_sq]);
+          if(IS_SLIDER_PIECE[piece]){
+            if(this->pieces[t_sq] != EMPTY) break;
+            t_sq += dir;
+          }else{
+            break;
           }
-        }else{
-          list.add_quiet_move(sq, t_sq);
         }
       }
     }
-
-    piece = loop_non_slide_pieces[piece_index++];
   }
 
   return list;
