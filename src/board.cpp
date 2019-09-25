@@ -81,8 +81,6 @@ MoveList Board::generate_all_moves(){
   int unchecked_positions[BOARD_SQ_NUM];
   bool position_status[BOARD_SQ_NUM];
 
-  for(int i = 0; i < MAX_POSITION_MOVES; addable_positions[i++] = -1);
-  for(int i = 0; i < BOARD_SQ_NUM; unchecked_positions[i++] = -1);
   for(int i = 0; i < BOARD_SQ_NUM; position_status[i++] = false);
 
   unchecked_positions[0] = this->king_square[side];
