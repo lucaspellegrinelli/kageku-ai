@@ -41,7 +41,7 @@ private:
     0000 0000 0000 0000 0000 0111 1000 0000 -> [>> 7, 0xF]
 
     1 bit -> Is move? -> 2^1 = 2 = Number of options
-    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 15, 0x1]
+    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 11, 0x1]
   */
   int move[MAX_POSITION_MOVES];
 
@@ -72,6 +72,8 @@ public:
 
   int get_add_square(int i);
   int get_add_piece(int i);
+
+  int get_move_size();
 
   std::string get_repr();
   void print();

@@ -26,7 +26,7 @@ int Move::create_move(int from, int to, int captured){
 }
 
 int Move::create_add(int square, int piece){
-  return (square) | (piece << 7) | (1 << 15);
+  return (square) | (piece << 7) | (1 << 11);
 }
 
 bool Move::is_move(){
@@ -46,7 +46,7 @@ bool Move::is_add(){
 }
 
 void Move::add_move(int move){
-  ASSERT(this->is_add());
+  ASSERT(this->is_add() || this->move_count == 0);
   this->move[this->move_count++] = move;
 }
 
@@ -77,6 +77,10 @@ int Move::get_add_piece(int i){
 
 int Move::get_score(){
   return this->score;
+}
+
+int Move::get_move_size(){
+  return this->move_count;
 }
 
 std::string Move::get_repr(){

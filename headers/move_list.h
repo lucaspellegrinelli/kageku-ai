@@ -13,8 +13,8 @@ public:
 
   MoveList();
 
-  void add_quiet_move(int from, int to);
-  void add_capture_move(int from, int to, int captured);
+  void add_quiet_move(Move move);
+  void add_capture_move(Move move);
   void add_new_piece_move(Move move);
 
   void print();
