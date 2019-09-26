@@ -125,7 +125,7 @@ MoveList Board::generate_all_moves(){
   int no_add = 0;
 
   int curr_add_size = 0;
-  int last_curr_add_size = 0;
+  int last_adds_size = 0;
   for(int i = 0; i < add_count; i++){
     int pos = addable_positions[i];
 
@@ -151,7 +151,7 @@ MoveList Board::generate_all_moves(){
         }
       }
     }else{
-      for(int add_line_i = last_curr_add_size; add_line_i < all_adds_size; add_line_i++){
+      for(int add_line_i = last_adds_size; add_line_i < all_adds_size; add_line_i++){
         // Keeps track of the current mana available
         int curr_mana = this->mana[side];
 
@@ -164,8 +164,10 @@ MoveList Board::generate_all_moves(){
         for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
           int add_move = all_adds[add_line_i][add_i];
           int piece_added = (add_move >> 7) & 0xF;
+
           ASSERT(IS_PIECE_VALID_OR_EMPTY(piece_added));
 
+          // Updates current mana que current piece count
           if(IS_PIECE_VALID(piece_added)){
             curr_mana -= PIECE_COST[piece_added];
             int p_index = PIECE_SIDE_INDEX(piece_added);
@@ -205,12 +207,12 @@ MoveList Board::generate_all_moves(){
         }
       }
 
-      last_curr_add_size = all_adds_size;
+      last_adds_size = all_adds_size;
       all_adds_size = curr_add_size;
     }
   }
 
-  for(int i = last_curr_add_size; i < all_adds_size; i++){
+  for(int i = last_adds_size; i < all_adds_size; i++){
     if(each_add_size[i] < add_count) continue;
     Move move;
     for(int j = 0; j < each_add_size[i]; j++){
