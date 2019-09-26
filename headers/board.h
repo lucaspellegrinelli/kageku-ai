@@ -59,6 +59,9 @@ private:
   // Material count for each team
   int material[COLOR_COUNT];
 
+  // Current mana for each player
+  int mana[COLOR_COUNT];
+
   // Info about the moves played previously
   MoveInfo history[MAX_GAME_MOVES];
 

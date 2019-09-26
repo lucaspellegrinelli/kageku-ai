@@ -11,6 +11,8 @@ int main(){
   Board b;
   b.print();
 
+  std::cout << std::endl;
+
   b.generate_all_moves().print();
 
   return 0;

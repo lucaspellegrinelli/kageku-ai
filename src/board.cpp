@@ -116,94 +116,86 @@ MoveList Board::generate_all_moves(){
     }
   }
 
-  for(int i = 0; i < add_count; i++){
-    char pos_str[2] = {
-      (char)('a' + SQUARE_FILE[addable_positions[i]]),
-      (char)('1' + SQUARE_RANK[addable_positions[i]])
-    };
-    std::cout << "Can add on " << pos_str << std::endl;
-  }
-
-  int MANA = 2;
-
   // Each line is a move, each column a position on the board a piece is added
-  int all_adds[MAX_POSITION_MOVES][61];
+  int all_adds[1024][32];
   int all_adds_size = 0;
   int each_add_size[MAX_POSITION_MOVES];
   for(int i = 0; i < 61; each_add_size[i++] = 0);
 
   int no_add = 0;
 
-  int last_curr_add_size = 0;
   int curr_add_size = 0;
+  int last_curr_add_size = 0;
   for(int i = 0; i < add_count; i++){
     int pos = addable_positions[i];
 
-    char pos_str[2] = {
-      (char)('a' + SQUARE_FILE[addable_positions[i]]),
-      (char)('1' + SQUARE_RANK[addable_positions[i]])
-    };
+    // Can add to the opponent side
+    if((SQUARE_RANK[pos] >= RANK_5) == (side == WHITE)) continue;
 
-    std::cout << " ----- CURR POS: " << pos_str << " -------" << std::endl;
-
-    if((SQUARE_RANK[pos] >= 4) == (side == WHITE)) continue;
-
-    last_curr_add_size = curr_add_size;
     curr_add_size = all_adds_size;
+
     if(all_adds_size == 0){
       all_adds[all_adds_size][0] = no_add;
       each_add_size[all_adds_size] = 1;
       all_adds_size++;
 
-      int curr_piece_count[6];
-      for(int piece_i = 0; piece_i < 6; piece_i++){
-        curr_piece_count[piece_i] = this->piece_count[side_pieces[side][piece_i]];
-      }
-
+      // For each piece of that player side
       for(int piece : side_pieces[side]){
         int cost = PIECE_COST[piece];
 
-        if(cost <= MANA && curr_piece_count[piece] < PIECE_MAX[piece]){
+        // If you can add that piece
+        if(cost <= this->mana[side] && this->piece_count[side_pieces[side][piece]] < PIECE_MAX[piece]){
           all_adds[all_adds_size][each_add_size[all_adds_size]] = Move::create_add(pos, piece);
           each_add_size[all_adds_size]++;
           all_adds_size++;
-          curr_piece_count[piece] += 1;
         }
       }
     }else{
-      for(int add_line_i = 0; add_line_i < all_adds_size; add_line_i++){
-        if(each_add_size[add_line_i] < i) continue;
+      for(int add_line_i = last_curr_add_size; add_line_i < all_adds_size; add_line_i++){
+        // Keeps track of the current mana available
+        int curr_mana = this->mana[side];
 
-        int curr_mana = MANA;
-        for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
-          int add_move = all_adds[add_line_i][add_i];
-          int piece_added = (add_move >> 7) & 0xF;
-          if(IS_PIECE_VALID(piece_added)) curr_mana -= PIECE_COST[piece_added];
-        }
-
+        // Keeps track of the current number of each of the pieces
         int curr_piece_count[6];
         for(int piece_i = 0; piece_i < 6; piece_i++){
           curr_piece_count[piece_i] = this->piece_count[side_pieces[side][piece_i]];
         }
 
         for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
+          int add_move = all_adds[add_line_i][add_i];
+          int piece_added = (add_move >> 7) & 0xF;
+          ASSERT(IS_PIECE_VALID_OR_EMPTY(piece_added));
+
+          if(IS_PIECE_VALID(piece_added)){
+            curr_mana -= PIECE_COST[piece_added];
+            int p_index = PIECE_SIDE_INDEX(piece_added);
+            curr_piece_count[p_index]++;
+          }
+        }
+
+        // Copies the current moves in this move line
+        for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
           all_adds[curr_add_size][add_i] = all_adds[add_line_i][add_i];
         }
 
+        // Adds the new move to it
         all_adds[curr_add_size][each_add_size[add_line_i]] = no_add;
         each_add_size[curr_add_size] = each_add_size[add_line_i] + 1;
         curr_add_size++;
 
         for(int piece : side_pieces[side]){
           int cost = PIECE_COST[piece];
+          int piece_count_id = PIECE_SIDE_INDEX(piece);
 
-          if(cost <= curr_mana && curr_piece_count[piece] < PIECE_MAX[piece]){
+          // If you can add that piece
+          if(cost <= curr_mana && curr_piece_count[piece_count_id] < PIECE_MAX[piece]){
             int piece_id = Move::create_add(pos, piece);
-
+            // Copies the current moves in this move line
             for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
               all_adds[curr_add_size][add_i] = all_adds[add_line_i][add_i];
             }
 
+            // Adds the new move to it
             all_adds[curr_add_size][each_add_size[add_line_i]] = piece_id;
             each_add_size[curr_add_size] = each_add_size[add_line_i] + 1;
             curr_add_size++;
@@ -213,37 +205,19 @@ MoveList Board::generate_all_moves(){
         }
       }
 
+      last_curr_add_size = all_adds_size;
       all_adds_size = curr_add_size;
     }
   }
 
-  std::cout << "Current all adds:" << all_adds_size << std::endl;
   for(int i = last_curr_add_size; i < all_adds_size; i++){
-    std::cout << "[" << i << "] ";
-    for(int j = 0; j < each_add_size[i]; j++){
-      int m = all_adds[i][j];
-      if(m == 0){
-        std::cout << "NOADD ";
-      }else{
-        Move move;
-        move.add_move(m);
-        std::cout << move.get_repr() << " ";
-      }
-    }
-    std::cout << std::endl;
-  }
-
-  for(int i = last_curr_add_size; i < all_adds_size; i++){
+    if(each_add_size[i] < add_count) continue;
     Move move;
     for(int j = 0; j < each_add_size[i]; j++){
-      if(all_adds[i][j] != no_add){
-        move.add_move(all_adds[i][j]);
-      }
+      if(all_adds[i][j] != no_add) move.add_move(all_adds[i][j]);
     }
 
-    if(move.get_move_size() > 0){
-      list.add_new_piece_move(move);
-    }
+    if(move.get_move_size() > 0) list.add_new_piece_move(move);
   }
 
   return list;
@@ -309,6 +283,8 @@ bool Board::is_square_attacked(int sq, int side){
 }
 
 void Board::update_lists_material(){
+  bool has_close_pawn[2] = {false, false};
+
   for(int i = 0; i < BOARD_SQ_NUM; i++){
     int sq = i;
     int piece = this->pieces[i];
@@ -327,15 +303,27 @@ void Board::update_lists_material(){
       if(piece == wK) this->king_square[WHITE] = sq;
       if(piece == bK) this->king_square[BLACK] = sq;
 
+      this->mana[WHITE] = 0;
+      this->mana[BLACK] = 0;
+
       if(piece == wP){
         this->pawns[WHITE].set_bit(square_from_120_board_to_64_board[sq]);
         this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[sq]);
+
+        if(SQUARE_RANK[i] > RANK_4) this->mana[WHITE]++;
+        if(SQUARE_RANK[i] <= RANK_4) has_close_pawn[WHITE] = true;
       }else if(piece == bP){
         this->pawns[BLACK].set_bit(square_from_120_board_to_64_board[sq]);
         this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[sq]);
+
+        if(SQUARE_RANK[i] <= RANK_4) this->mana[BLACK]++;
+        if(SQUARE_RANK[i] > RANK_4) has_close_pawn[BLACK] = true;
       }
     }
   }
+
+  if(has_close_pawn[WHITE]) this->mana[WHITE]++;
+  if(has_close_pawn[BLACK]) this->mana[BLACK]++;
 }
 
 bool Board::check_board(){

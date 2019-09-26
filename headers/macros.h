@@ -31,4 +31,7 @@ exit(1); \
 #define IS_PIECE_VALID(piece) ((piece) >= wP && (piece) <= bK)
 #define IS_PIECE_VALID_OR_EMPTY(piece) ((piece) >= EMPTY && (piece) <= bK)
 
+// Converts piece to index
+#define PIECE_SIDE_INDEX(piece) ((PIECE_COLOR[(piece)] == WHITE) ? ((piece) - wP) : ((piece) - bP))
+
 #endif
