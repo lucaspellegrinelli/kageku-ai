@@ -475,13 +475,13 @@ bool Board::is_square_attacked(int sq, int side){
   // Knights
   for(int dir_i = 0; dir_i < 8; dir_i++){
     int piece = this->pieces[sq + KNIGHT_DIR[dir_i]];
-    if(IS_PIECE_KNIGHT[piece] && PIECE_COLOR[piece] == side) return true;
+    if(piece != OFFBOARD && IS_PIECE_KNIGHT[piece] && PIECE_COLOR[piece] == side) return true;
   }
 
   // King
   for(int dir_i = 0; dir_i < 8; dir_i++){
     int piece = this->pieces[sq + KING_DIR[dir_i]];
-    if(IS_PIECE_KING[piece] && PIECE_COLOR[piece] == side) return true;
+    if(piece != OFFBOARD && IS_PIECE_KING[piece] && PIECE_COLOR[piece] == side) return true;
   }
 
   // Rook and Queen
