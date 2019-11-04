@@ -29,6 +29,58 @@ int Move::create_add(int square, int piece){
   return (square) | (piece << 7) | (0 << 18);
 }
 
+Move Move::parse_move(std::string move_str){
+  ASSERT((move_str.size() > 0 && move_str.size() % 3 == 0) || move_str.size() == 4);
+
+  if(move_str.size() == 4){
+    ASSERT(move_str[0] >= 'a' && move_str[0] <= 'h');
+    ASSERT(move_str[2] >= 'a' && move_str[2] <= 'h');
+    ASSERT(move_str[1] >= '1' && move_str[1] <= '8');
+    ASSERT(move_str[3] >= '1' && move_str[3] <= '8');
+
+    int from = FILE_RANK_TO_SQUARE(move_str[0] - 'a', move_str[1] - '1');
+    int to = FILE_RANK_TO_SQUARE(move_str[2] - 'a', move_str[3] - '1');
+
+    ASSERT(IS_SQUARE_ON_BOARD(from));
+    ASSERT(IS_SQUARE_ON_BOARD(to))
+
+    Move move(Move::create_move(from, to));
+    return move;
+  }else{
+    Move move;
+    for(unsigned int i = 0; i < move_str.size(); i += 3){
+      std::string submove_str = move_str.substr(i, 3);
+
+      ASSERT(submove_str[0] >= 'a' && submove_str[0] <= 'h');
+      ASSERT(submove_str[1] >= '1' && submove_str[1] <= '8');
+      ASSERT(IS_PIECE_REPR_VALID(submove_str[2]));
+
+      int add_square = FILE_RANK_TO_SQUARE(submove_str[0] - 'a', submove_str[1] - '1');
+      int add_piece = -1;
+
+      if(submove_str[2] == 'P') add_piece = wP;
+      else if(submove_str[2] == 'N') add_piece = wN;
+      else if(submove_str[2] == 'B') add_piece = wB;
+      else if(submove_str[2] == 'R') add_piece = wR;
+      else if(submove_str[2] == 'Q') add_piece = wQ;
+      else if(submove_str[2] == 'K') add_piece = wK;
+      else if(submove_str[2] == 'p') add_piece = bP;
+      else if(submove_str[2] == 'n') add_piece = bN;
+      else if(submove_str[2] == 'b') add_piece = bB;
+      else if(submove_str[2] == 'r') add_piece = bR;
+      else if(submove_str[2] == 'q') add_piece = bQ;
+      else if(submove_str[2] == 'k') add_piece = bK;
+
+      ASSERT(IS_SQUARE_ON_BOARD(add_square));
+      ASSERT(IS_PIECE_VALID(add_piece));
+
+      move.add_move(Move::create_add(add_square, add_piece));
+    }
+
+    return move;
+  }
+}
+
 bool Move::is_move(){
   if(this->move_count > 0){
     return (this->move[0] >> 18) & 0x1;

@@ -15,6 +15,8 @@ typedef unsigned long long U64;
 // Maximum number of possible moves per position
 #define MAX_POSITION_MOVES 256
 
+#define NOMOVE 0
+
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
 enum{WHITE, BLACK, BOTH};

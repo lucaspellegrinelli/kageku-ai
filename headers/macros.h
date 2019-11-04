@@ -28,6 +28,7 @@ exit(1); \
 #define IS_SQUARE_ON_BOARD(sq) (SQUARE_FILE[(sq)] != OFFBOARD)
 #define IS_SIDE_VALID(side) ((side) == WHITE || (side) == BLACK)
 #define IS_FILE_RANK_VALID(fr) ((fr) >= 0 && fr <= 7)
+#define IS_PIECE_REPR_VALID(piece) ((piece) == 'p' || (piece) == 'n' || (piece) == 'b' || (piece) == 'r' || (piece) == 'q' || (piece) == 'k' || (piece) == 'P' || (piece) == 'N' || (piece) == 'B' || (piece) == 'R' || (piece) == 'Q' || (piece) == 'K')
 #define IS_PIECE_VALID(piece) ((piece) >= wP && (piece) <= bK)
 #define IS_PIECE_VALID_OR_EMPTY(piece) ((piece) >= EMPTY && (piece) <= bK)
 

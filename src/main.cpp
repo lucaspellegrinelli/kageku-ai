@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "defs.h"
 #include "macros.h"
@@ -9,22 +10,26 @@
 
 int main(){
   Board b;
-  b.print();
 
-  std::cout << std::endl;
-
-  Move a = Move(Move::create_add(36, wQ));
-  std::cout << "Test: " << a.get_add_square(0) << " " << a.get_add_piece(0) << std::endl;
-
-  MoveList move_list = b.generate_all_moves();
-
-  for(int i = 0; i < move_list.count; i++){
-    Move move = move_list.moves[i];
-    std::cout << "Found " << move.get_repr() << std::endl;
-    b.make_move(move);
+  while(true){
     b.print();
     std::cout << std::endl;
-    b.take_move();
+
+    MoveList move_list = b.generate_all_moves();
+    move_list.print();
+
+    std::string in_move;
+    std::cout << "Type in your move: ";
+    std::cin >> in_move;
+
+    if(in_move == "t"){
+      std::cout << "You took back the last move" << std::endl;
+      b.take_move();
+    }else{
+      Move move = Move::parse_move(in_move);
+      std::cout << "You typed: "<< move.get_repr() << std::endl;
+      b.make_move(move);
+    }
   }
 
   return 0;

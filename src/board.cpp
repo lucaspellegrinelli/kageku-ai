@@ -4,7 +4,7 @@ Board::Board(){
   this->initialize_piece_keys();
   this->initialize_side_key();
 
-  char starting_fen[] = "k1r5/ppp5/8/8/5PPP/7P/7P/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
