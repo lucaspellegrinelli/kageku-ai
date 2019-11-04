@@ -18,20 +18,20 @@ Move::Move(int move, int score){
 }
 
 int Move::create_move(int from, int to){
-  return (from) | (to << 7) | (EMPTY << 14) | (1 << 15);
+  return (from) | (to << 7) | (EMPTY << 14) | (1 << 18);
 }
 
 int Move::create_move(int from, int to, int captured){
-  return (from) | (to << 7) | (captured << 14) | (1 << 15);
+  return (from) | (to << 7) | (captured << 14) | (1 << 18);
 }
 
 int Move::create_add(int square, int piece){
-  return (square) | (piece << 7) | (1 << 11);
+  return (square) | (piece << 7) | (0 << 18);
 }
 
 bool Move::is_move(){
   if(this->move_count > 0){
-    return (this->move[0] >> 15) & 0x1;
+    return (this->move[0] >> 18) & 0x1;
   }
 
   return false;
@@ -39,7 +39,7 @@ bool Move::is_move(){
 
 bool Move::is_add(){
   if(this->move_count > 0){
-    return ~((this->move[0] >> 15) & 0x1);
+    return ~((this->move[0] >> 18) & 0x1);
   }
 
   return false;

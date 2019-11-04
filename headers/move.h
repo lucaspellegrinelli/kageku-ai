@@ -7,14 +7,6 @@
 #include "defs.h"
 #include "macros.h"
 
-// Class responsible for storing the states of the game before a move for
-// undoing it
-class MoveInfo{
-  int move[MAX_POSITION_MOVES];
-  int fifty_move_counter;
-  U64 position_key;
-};
-
 class Move{
 private:
   /*
@@ -31,7 +23,7 @@ private:
     0000 0000 0000 0011 1100 0000 0000 0000 -> [>> 14, 0xF]
 
     1 bit -> Is move? -> 2^1 = 2 = Number of options
-    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 15, 0x1]
+    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 18, 0x1]
 
     ADD -
     7 bits -> "Square" -> 2^7 = 64 = Number of squares in the board
@@ -41,7 +33,7 @@ private:
     0000 0000 0000 0000 0000 0111 1000 0000 -> [>> 7, 0xF]
 
     1 bit -> Is move? -> 2^1 = 2 = Number of options
-    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 11, 0x1]
+    0000 0000 0000 0100 0000 0000 0000 0000 -> [>> 18, 0x1]
   */
   int move[MAX_POSITION_MOVES];
 
@@ -77,6 +69,15 @@ public:
 
   std::string get_repr();
   void print();
+};
+
+// Class responsible for storing the states of the game before a move for
+// undoing it
+class MoveInfo{
+public:
+  Move move;
+  int fifty_move_counter;
+  U64 position_key;
 };
 
 #endif

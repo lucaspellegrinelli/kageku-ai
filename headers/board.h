@@ -13,6 +13,9 @@
 #include "move_list.h"
 #include "bitboard.h"
 
+#define HASH_PIECE(piece, sq) (this->position_key ^= (this->piece_keys[(piece)][(sq)]))
+#define HASH_SIDE (this->position_key ^= this->side_key)
+
 class Board{
 private:
   // Board represented as an array of 120 positions (main 64x64 board plus edges)
@@ -87,6 +90,14 @@ public:
   Board();
 
   MoveList generate_all_moves();
+
+  void clear_piece(const int square);
+  void add_piece(const int piece, const int square);
+  void move_piece(const int from, const int to);
+
+  // Return false if you make a move that exposes your king to check
+  bool make_move(Move move);
+  void take_move();
 
   bool is_square_attacked(int sq, int side);
 

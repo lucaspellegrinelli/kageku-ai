@@ -225,6 +225,225 @@ MoveList Board::generate_all_moves(){
   return list;
 }
 
+void Board::clear_piece(const int square){
+  ASSERT(IS_SQUARE_ON_BOARD(square));
+  int piece = this->pieces[square];
+  ASSERT(IS_PIECE_VALID(piece));
+
+  int color = PIECE_COLOR[piece];
+  int piece_list_id = -1;
+
+  HASH_PIECE(piece, square);
+
+  this->pieces[square] = EMPTY;
+  this->material[color] -= PIECE_VAL[piece];
+
+  if(NON_PAWN_PIECES[piece]){
+    if(MAJOR_PIECES[piece]) this->major_piece_count[color]--;
+    else this->minor_piece_count[color]--;
+  }else{
+    this->pawns[color].clear_bit(square_from_120_board_to_64_board[square]);
+    this->pawns[BOTH].clear_bit(square_from_120_board_to_64_board[square]);
+  }
+
+  for(int i = 0; i < this->piece_count[piece]; i++){
+    if(this->piece_list[piece][i] == square){
+      piece_list_id = i;
+      break;
+    }
+  }
+
+  ASSERT(piece_list_id != -1);
+
+  this->piece_count[piece]--;
+  this->piece_list[piece][piece_list_id] = this->piece_list[piece][this->piece_count[piece]];
+}
+
+void Board::add_piece(const int piece, const int square){
+  ASSERT(IS_PIECE_VALID(piece));
+  ASSERT(IS_SQUARE_ON_BOARD(square));
+
+  int color = PIECE_COLOR[piece];
+
+  HASH_PIECE(piece, square);
+  this->pieces[square] = piece;
+
+  if(NON_PAWN_PIECES[piece]){
+    if(MAJOR_PIECES[piece]) this->major_piece_count[color]++;
+    else this->minor_piece_count[color]++;
+  }else{
+    this->pawns[color].set_bit(square_from_120_board_to_64_board[square]);
+    this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[square]);
+  }
+
+  this->material[color] += PIECE_VAL[piece];
+  this->piece_list[piece][this->piece_count[piece]++] = square;
+}
+
+void Board::move_piece(const int from, const int to){
+  ASSERT(IS_SQUARE_ON_BOARD(from));
+  ASSERT(IS_SQUARE_ON_BOARD(to));
+
+  int piece = this->pieces[from];
+  int color = PIECE_COLOR[piece];
+
+  #ifdef DEBUG
+  bool piece_found_in_list = false;
+  #endif
+
+  HASH_PIECE(piece, from);
+  this->pieces[from] = EMPTY;
+
+  HASH_PIECE(piece, to);
+  this->pieces[to] = piece;
+
+  if(!NON_PAWN_PIECES[piece]){
+    this->pawns[color].clear_bit(square_from_120_board_to_64_board[from]);
+    this->pawns[BOTH].clear_bit(square_from_120_board_to_64_board[from]);
+    this->pawns[color].set_bit(square_from_120_board_to_64_board[to]);
+    this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[to]);
+  }
+
+  for(int i = 0; i < this->piece_count[piece]; i++){
+    if(this->piece_list[piece][i] == from){
+      this->piece_list[piece][i] = to;
+      #ifdef DEBUG
+      piece_found_in_list = true;
+      #endif
+      break;
+    }
+  }
+
+  ASSERT(piece_found_in_list);
+}
+
+bool Board::make_move(Move move){
+  ASSERT(this->check_board());
+
+  if(move.is_move()){
+    int from = move.get_from();
+    int to = move.get_to();
+    int side = this->side_to_move;
+
+    ASSERT(IS_SQUARE_ON_BOARD(from));
+    ASSERT(IS_SQUARE_ON_BOARD(to));
+    ASSERT(IS_SIDE_VALID(side));
+    ASSERT(IS_PIECE_VALID(this->pieces[from]));
+
+    this->history[this->history_ply].position_key = this->position_key;
+    this->history[this->history_ply].move = move;
+    this->history[this->history_ply].fifty_move_counter = this->fifty_move_counter;
+
+    int captured = move.get_captured();
+    this->fifty_move_counter++;
+
+    if(captured != EMPTY){
+      ASSERT(IS_PIECE_VALID(captured));
+      this->clear_piece(to);
+      this->fifty_move_counter = 0;
+    }
+
+    this->history_ply++;
+    this->ply++;
+
+    this->move_piece(from, to);
+
+    if(IS_PIECE_KING[this->pieces[to]]){
+      this->king_square[this->side_to_move] = to;
+    }
+
+    this->side_to_move ^= 1;
+    HASH_SIDE;
+
+    ASSERT(this->check_board());
+
+    if(this->is_square_attacked(this->king_square[side], this->side_to_move)){
+      this->take_move();
+      return false;
+    }
+
+    return true;
+  }else{
+    this->history[this->history_ply].position_key = this->position_key;
+    this->history[this->history_ply].move = move;
+    this->history[this->history_ply].fifty_move_counter = this->fifty_move_counter;
+
+    this->history_ply++;
+    this->ply++;
+
+    this->fifty_move_counter++;
+
+    for(int i = 0; i < move.get_move_size(); i++){
+      int add_square = move.get_add_square(i);
+      int add_piece = move.get_add_piece(i);
+      int side = this->side_to_move;
+
+      ASSERT(IS_PIECE_VALID(add_piece));
+      ASSERT(IS_SQUARE_ON_BOARD(add_square));
+      ASSERT(IS_SIDE_VALID(side));
+      ASSERT(this->pieces[add_square] == EMPTY);
+
+      this->add_piece(add_piece, add_square);
+    }
+
+    this->side_to_move ^= 1;
+    HASH_SIDE;
+
+    ASSERT(this->check_board());
+    return true;
+  }
+}
+
+void Board::take_move(){
+  ASSERT(this->check_board());
+
+  this->history_ply--;
+  this->ply--;
+
+  Move move = this->history[this->history_ply].move;
+
+  if(move.is_move()){
+    int from = move.get_from();
+    int to = move.get_to();
+
+    ASSERT(IS_SQUARE_ON_BOARD(from));
+    ASSERT(IS_SQUARE_ON_BOARD(to));
+
+    this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
+    this->side_to_move ^= 1;
+    HASH_SIDE;
+
+    this->move_piece(to, from);
+
+    if(IS_PIECE_KING[this->pieces[from]]){
+      this->king_square[this->side_to_move] = from;
+    }
+
+    int captured = move.get_captured();
+    if(captured != EMPTY){
+      ASSERT(IS_PIECE_VALID(captured));
+      this->add_piece(to, captured);
+    }
+  }else{
+    for(int i = 0; i < move.get_move_size(); i++){
+      int add_square = move.get_add_square(i);
+      int add_piece = move.get_add_piece(i);
+
+      ASSERT(IS_PIECE_VALID(add_piece));
+      ASSERT(IS_SQUARE_ON_BOARD(add_square));
+      ASSERT(this->pieces[add_square] != EMPTY);
+
+      this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
+      this->side_to_move ^= 1;
+      HASH_SIDE;
+
+      this->clear_piece(add_square);
+    }
+  }
+
+  ASSERT(this->check_board());
+}
+
 bool Board::is_square_attacked(int sq, int side){
   ASSERT(IS_SQUARE_ON_BOARD(sq));
   ASSERT(IS_SIDE_VALID(side));
