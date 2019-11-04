@@ -4,7 +4,7 @@ Board::Board(){
   this->initialize_piece_keys();
   this->initialize_side_key();
 
-  char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/8/8/5PPP/7P/7P/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -239,6 +239,7 @@ void Board::clear_piece(const int square){
   this->material[color] -= PIECE_VAL[piece];
 
   if(NON_PAWN_PIECES[piece]){
+    this->not_pawn_piece_count[color]--;
     if(MAJOR_PIECES[piece]) this->major_piece_count[color]--;
     else this->minor_piece_count[color]--;
   }else{
@@ -269,6 +270,7 @@ void Board::add_piece(const int piece, const int square){
   this->pieces[square] = piece;
 
   if(NON_PAWN_PIECES[piece]){
+    this->not_pawn_piece_count[color]++;
     if(MAJOR_PIECES[piece]) this->major_piece_count[color]++;
     else this->minor_piece_count[color]++;
   }else{
@@ -302,6 +304,20 @@ void Board::move_piece(const int from, const int to){
     this->pawns[BOTH].clear_bit(square_from_120_board_to_64_board[from]);
     this->pawns[color].set_bit(square_from_120_board_to_64_board[to]);
     this->pawns[BOTH].set_bit(square_from_120_board_to_64_board[to]);
+
+    if(color == WHITE){
+      if(SQUARE_RANK[from] <= RANK_4 && SQUARE_RANK[to] > RANK_4){
+        this->mana[WHITE]++;
+      }else if(SQUARE_RANK[to] <= RANK_4 && SQUARE_RANK[from] > RANK_4){
+        this->mana[WHITE]--;
+      }
+    }else{
+      if(SQUARE_RANK[from] > RANK_4 && SQUARE_RANK[to] <= RANK_4){
+        this->mana[BLACK]++;
+      }else if(SQUARE_RANK[to] > RANK_4 && SQUARE_RANK[from] <= RANK_4){
+        this->mana[WHITE]--;
+      }
+    }
   }
 
   for(int i = 0; i < this->piece_count[piece]; i++){
@@ -506,6 +522,9 @@ bool Board::is_square_attacked(int sq, int side){
 void Board::update_lists_material(){
   bool has_close_pawn[2] = {false, false};
 
+  this->mana[WHITE] = 0;
+  this->mana[BLACK] = 0;
+
   for(int i = 0; i < BOARD_SQ_NUM; i++){
     int sq = i;
     int piece = this->pieces[i];
@@ -523,9 +542,6 @@ void Board::update_lists_material(){
 
       if(piece == wK) this->king_square[WHITE] = sq;
       if(piece == bK) this->king_square[BLACK] = sq;
-
-      this->mana[WHITE] = 0;
-      this->mana[BLACK] = 0;
 
       if(piece == wP){
         this->pawns[WHITE].set_bit(square_from_120_board_to_64_board[sq]);
@@ -648,6 +664,7 @@ void Board::print(){
 
   boardcout << "Side: " << COLOR_CHARS[this->side_to_move] << std::endl;
   boardcout << "Position Key: " << std::hex << std::uppercase << this->position_key << std::endl;
+  boardcout << "Side mana: " << this->mana[WHITE] << std::endl;
 }
 
 void Board::set_fen(char *fen){
