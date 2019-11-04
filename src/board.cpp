@@ -107,6 +107,9 @@ MoveList Board::generate_all_moves(){
       if(IS_SQUARE_ON_BOARD(adj_pos)){
         int piece = this->pieces[adj_pos];
 
+        // Cant add to the opponent side
+        if((SQUARE_RANK[adj_pos] >= RANK_5) == (side == WHITE)) continue;
+
         if(!position_status[adj_pos]){
           if(piece == EMPTY) addable_positions[add_count++] = adj_pos;
           else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_count++] = adj_pos;
@@ -129,9 +132,6 @@ MoveList Board::generate_all_moves(){
   for(int i = 0; i < add_count; i++){
     int pos = addable_positions[i];
 
-    // Can add to the opponent side
-    if((SQUARE_RANK[pos] >= RANK_5) == (side == WHITE)) continue;
-
     curr_add_size = all_adds_size;
 
     if(all_adds_size == 0){
@@ -144,7 +144,7 @@ MoveList Board::generate_all_moves(){
         int cost = PIECE_COST[piece];
 
         // If you can add that piece
-        if(cost <= this->mana[side] && this->piece_count[side_pieces[side][piece]] < PIECE_MAX[piece]){
+        if(cost <= this->mana[side] && this->piece_count[piece] < PIECE_MAX[piece]){
           all_adds[all_adds_size][each_add_size[all_adds_size]] = Move::create_add(pos, piece);
           each_add_size[all_adds_size]++;
           all_adds_size++;
