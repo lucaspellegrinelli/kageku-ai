@@ -800,20 +800,18 @@ U64 Board::generate_position_key(){
 
 void Board::add_move_to_hash_table(Move move){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
-  PV_Entry entry(this->position_key, move);
+  std::pair<U64, Move> entry = std::make_pair(this->position_key, move);
   this->calculated_moves_table.insert(std::make_pair(hash_index, entry));
 }
 
 Move Board::get_move_from_hash_table(){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
-  PV_Entry entry = this->calculated_moves_table[hash_index];
+  std::pair<U64, Move> entry = this->calculated_moves_table[hash_index];
 
-  if(entry.move.get_move_size() > 0 && entry.position_key == this->position_key){
-    return entry.move;
+  if(entry.second.get_move_size() > 0 && entry.first == this->position_key){
+    return entry.second;
   }else{
-    Move move;
-    move.set_valid(false);
-    return move;
+    return Move::unvalid_move();
   }
 }
 

@@ -32,6 +32,12 @@ int Move::create_add(int square, int piece){
   return (square) | (piece << 7) | (0 << 18);
 }
 
+Move Move::unvalid_move(){
+  Move m;
+  m.set_valid(false);
+  return m;
+}
+
 Move Move::parse_move(std::string move_str){
   if(move_str.size() == 4){
     if((move_str[0] < 'a' && move_str[0] > 'h') ||

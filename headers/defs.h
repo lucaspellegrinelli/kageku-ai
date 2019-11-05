@@ -21,6 +21,8 @@ typedef unsigned long long U64;
 
 #define MAX_DEPTH 64
 
+#define INFINITE 2147483645
+
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
 enum{WHITE, BLACK, BOTH};

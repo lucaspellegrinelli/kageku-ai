@@ -55,6 +55,7 @@ public:
   static int create_move(int from, int to, int captured);
   static int create_add(int square, int piece);
 
+  static Move unvalid_move();
   static Move parse_move(std::string move_str);
 
   void add_move(int move);

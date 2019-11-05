@@ -19,29 +19,14 @@
 #define HASH_PIECE(piece, sq) (this->position_key ^= (this->piece_keys[(piece)][(sq)]))
 #define HASH_SIDE (this->position_key ^= this->side_key)
 
-class PV_Entry{
-public:
-  U64 position_key;
-  Move move;
-
-  PV_Entry(){
-    Move empty_move;
-    empty_move.set_valid(false);
-    this->move = empty_move;
-  }
-
-  PV_Entry(U64 position_key, Move move){
-    this->position_key = position_key;
-    this->move = move;
-  }
-};
-
 class Board{
-private:
+public:
   // Hash table to store the best move for each searched position
-  std::unordered_map<int, PV_Entry> calculated_moves_table;
-  // PV_Entry *calculated_moves_table;
+  std::unordered_map<int, std::pair<U64, Move>> calculated_moves_table;
   Move pv_array[MAX_DEPTH];
+
+  int search_history[13][BOARD_SQ_NUM];
+  int search_killers[2][MAX_DEPTH];
 
   // Board represented as an array of 120 positions (main 64x64 board plus edges)
   int pieces[BOARD_SQ_NUM];
@@ -111,7 +96,7 @@ private:
     {NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE, NO_SQUARE}
   };
 
-public:
+// public:
   Board();
 
   MoveList generate_all_moves();
