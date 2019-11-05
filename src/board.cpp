@@ -8,8 +8,6 @@ Board::Board(){
   this->set_fen(starting_fen);
 
   this->update_lists_material();
-
-  this->calculated_moves_table = new PV_Entry[PV_TABLE_ENTRY_COUNT];
 }
 
 MoveList Board::generate_all_moves(){
@@ -802,37 +800,15 @@ U64 Board::generate_position_key(){
 
 void Board::add_move_to_hash_table(Move move){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
-  //
-  // std::cout << "   Saving entry. Key: " << hash_index << "  PosKey: " << this->position_key << "  Moves: (";
-  // for(int i = 0; i < move.get_move_size(); i++){
-  //   std::cout << move.get_move(i) << " ";
-  // }
-  // std::cout << ")" << std::endl;
-
   PV_Entry entry(this->position_key, move);
-  this->calculated_moves_table[hash_index] = entry;
+  this->calculated_moves_table.insert(std::make_pair(hash_index, entry));
 }
 
 Move Board::get_move_from_hash_table(){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
   PV_Entry entry = this->calculated_moves_table[hash_index];
 
-  // std::cout << "Loaded entry. Key: " << hash_index << "  PosKey: " << entry.position_key << "  Moves: (";
-  // for(int i = 0; i < entry.move_count; i++){
-  //   std::cout << entry.moves[i] << " ";
-  // }
-  // std::cout << ")" << std::endl;
-
   if(entry.move.get_move_size() > 0 && entry.position_key == this->position_key){
-    // Move move;
-    // std::cout << "Loaded move: ";
-    // for(int i = 0; i < entry.move_count; i++){
-    //   move.add_move(entry.moves[i]);
-    //   std::cout << entry.moves[i] << " ";
-    // }
-    // std::cout << std::endl;
-    //
-    // return move;
     return entry.move;
   }else{
     Move move;

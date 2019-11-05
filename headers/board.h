@@ -39,7 +39,8 @@ public:
 class Board{
 private:
   // Hash table to store the best move for each searched position
-  PV_Entry *calculated_moves_table;
+  std::unordered_map<int, PV_Entry> calculated_moves_table;
+  // PV_Entry *calculated_moves_table;
   Move pv_array[MAX_DEPTH];
 
   // Board represented as an array of 120 positions (main 64x64 board plus edges)

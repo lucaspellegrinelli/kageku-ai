@@ -25,7 +25,7 @@ int main(){
       break;
     }else if(in_move == "showpv"){
       int max = b.get_pv_line(4);
-      std::cout << "PV Line of " << max << " moves:" << std::endl;
+      std::cout << "PV Line of " << max << " moves: ";
       for(int i = 0; i < max; i++){
         std::cout << b.get_from_pv_array(i).get_repr() << " ";
       }
