@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <iomanip>
+#include <chrono>
+#include <unordered_map>
+#include <utility>
 
 #include "stdlib.h"
 
@@ -16,8 +19,29 @@
 #define HASH_PIECE(piece, sq) (this->position_key ^= (this->piece_keys[(piece)][(sq)]))
 #define HASH_SIDE (this->position_key ^= this->side_key)
 
+class PV_Entry{
+public:
+  U64 position_key;
+  Move move;
+
+  PV_Entry(){
+    Move empty_move;
+    empty_move.set_valid(false);
+    this->move = empty_move;
+  }
+
+  PV_Entry(U64 position_key, Move move){
+    this->position_key = position_key;
+    this->move = move;
+  }
+};
+
 class Board{
 private:
+  // Hash table to store the best move for each searched position
+  PV_Entry *calculated_moves_table;
+  Move pv_array[MAX_DEPTH];
+
   // Board represented as an array of 120 positions (main 64x64 board plus edges)
   int pieces[BOARD_SQ_NUM];
 
@@ -99,6 +123,8 @@ public:
   bool make_move(Move move);
   void take_move();
 
+  bool is_repetition();
+
   bool is_square_attacked(int sq, int side);
 
   void update_lists_material();
@@ -111,8 +137,15 @@ public:
 
   U64 generate_position_key();
 
+  void add_move_to_hash_table(Move move);
+  Move get_move_from_hash_table();
+  int get_pv_line(int depth);
+  Move get_from_pv_array(int i);
+
   void initialize_side_key();
   void initialize_piece_keys();
+
+  ~Board();
 };
 
 #endif

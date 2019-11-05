@@ -23,7 +23,7 @@ bool MoveList::is_move_in_list(Move move){
 
     bool found_diff = false;
     for(int j = 0; j < curr_move.get_move_size(); j++){
-      if(curr_move.move[j] != move.move[j]){
+      if(curr_move.get_move(j) != move.get_move(j)){
         found_diff = true;
         break;
       }

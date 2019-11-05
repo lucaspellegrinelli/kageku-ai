@@ -17,6 +17,10 @@ typedef unsigned long long U64;
 
 #define NOMOVE 0
 
+#define PV_TABLE_ENTRY_COUNT 1000000
+
+#define MAX_DEPTH 64
+
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
 enum{WHITE, BLACK, BOTH};

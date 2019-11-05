@@ -8,6 +8,8 @@ Board::Board(){
   this->set_fen(starting_fen);
 
   this->update_lists_material();
+
+  this->calculated_moves_table = new PV_Entry[PV_TABLE_ENTRY_COUNT];
 }
 
 MoveList Board::generate_all_moves(){
@@ -460,6 +462,16 @@ void Board::take_move(){
   ASSERT(this->check_board());
 }
 
+bool Board::is_repetition(){
+  for(int i = 0; i < this->history_ply; i++){
+    if(this->position_key == this->history[i].position_key){
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool Board::is_square_attacked(int sq, int side){
   ASSERT(IS_SQUARE_ON_BOARD(sq));
   ASSERT(IS_SIDE_VALID(side));
@@ -788,6 +800,77 @@ U64 Board::generate_position_key(){
   return final_key;
 }
 
+void Board::add_move_to_hash_table(Move move){
+  int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
+  //
+  // std::cout << "   Saving entry. Key: " << hash_index << "  PosKey: " << this->position_key << "  Moves: (";
+  // for(int i = 0; i < move.get_move_size(); i++){
+  //   std::cout << move.get_move(i) << " ";
+  // }
+  // std::cout << ")" << std::endl;
+
+  PV_Entry entry(this->position_key, move);
+  this->calculated_moves_table[hash_index] = entry;
+}
+
+Move Board::get_move_from_hash_table(){
+  int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
+  PV_Entry entry = this->calculated_moves_table[hash_index];
+
+  // std::cout << "Loaded entry. Key: " << hash_index << "  PosKey: " << entry.position_key << "  Moves: (";
+  // for(int i = 0; i < entry.move_count; i++){
+  //   std::cout << entry.moves[i] << " ";
+  // }
+  // std::cout << ")" << std::endl;
+
+  if(entry.move.get_move_size() > 0 && entry.position_key == this->position_key){
+    // Move move;
+    // std::cout << "Loaded move: ";
+    // for(int i = 0; i < entry.move_count; i++){
+    //   move.add_move(entry.moves[i]);
+    //   std::cout << entry.moves[i] << " ";
+    // }
+    // std::cout << std::endl;
+    //
+    // return move;
+    return entry.move;
+  }else{
+    Move move;
+    move.set_valid(false);
+    return move;
+  }
+}
+
+int Board::get_pv_line(int depth){
+  ASSERT(depth <= MAX_DEPTH);
+
+  Move move = this->get_move_from_hash_table();
+  int count = 0;
+
+  while(move.is_valid() && count < depth){
+    ASSERT(count < MAX_DEPTH);
+
+    if(this->generate_all_moves().is_move_in_list(move)){
+      this->make_move(move);
+      this->pv_array[count++] = move;
+    }else{
+      break;
+    }
+
+    move = this->get_move_from_hash_table();
+  }
+
+  while(this->ply > 0){
+    this->take_move();
+  }
+
+  return count;
+}
+
+Move Board::get_from_pv_array(int i){
+  return this->pv_array[i];
+}
+
 void Board::initialize_side_key(){
   U64 r = (U64)rand() | ((U64)rand() << 15) | ((U64)rand() << 30) | ((U64)rand() << 45) | (((U64)rand() & 0xf) << 60);
   this->side_key = r;
@@ -800,4 +883,10 @@ void Board::initialize_piece_keys(){
       this->piece_keys[i][j] = r;
     }
   }
+}
+
+Board::~Board(){
+  // for (auto& it : this->calculated_moves_table) {
+  //   delete it.second;
+  // }
 }

@@ -63,6 +63,7 @@ public:
   bool is_move();
   bool is_add();
   bool is_valid();
+  void set_valid(bool valid);
 
   int get_from();
   int get_to();

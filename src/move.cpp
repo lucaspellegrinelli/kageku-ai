@@ -116,6 +116,10 @@ bool Move::is_valid(){
   return this->valid;
 }
 
+void Move::set_valid(bool valid){
+  this->valid = valid;
+}
+
 void Move::add_move(int move){
   ASSERT(this->is_add() || this->move_count == 0);
   this->move[this->move_count++] = move;
