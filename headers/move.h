@@ -43,6 +43,9 @@ private:
   // Used for move ordering in the search
   int score;
 
+  // Is this move created in a valid way?
+  bool valid;
+
 public:
   Move();
   Move(int move);
@@ -55,9 +58,11 @@ public:
   static Move parse_move(std::string move_str);
 
   void add_move(int move);
+  int get_move(int i);
 
   bool is_move();
   bool is_add();
+  bool is_valid();
 
   int get_from();
   int get_to();

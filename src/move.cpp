@@ -3,18 +3,21 @@
 Move::Move(){
   this->score = 0;
   this->move_count = 0;
+  this->valid = true;
 }
 
 Move::Move(int move){
   this->move[0] = move;
   this->score = 0;
   this->move_count = 1;
+  this->valid = true;
 }
 
 Move::Move(int move, int score){
   this->move[0] = move;
   this->score = score;
   this->move_count = 1;
+  this->valid = true;
 }
 
 int Move::create_move(int from, int to){
@@ -30,13 +33,16 @@ int Move::create_add(int square, int piece){
 }
 
 Move Move::parse_move(std::string move_str){
-  ASSERT((move_str.size() > 0 && move_str.size() % 3 == 0) || move_str.size() == 4);
-
   if(move_str.size() == 4){
-    ASSERT(move_str[0] >= 'a' && move_str[0] <= 'h');
-    ASSERT(move_str[2] >= 'a' && move_str[2] <= 'h');
-    ASSERT(move_str[1] >= '1' && move_str[1] <= '8');
-    ASSERT(move_str[3] >= '1' && move_str[3] <= '8');
+    if((move_str[0] < 'a' && move_str[0] > 'h') ||
+       (move_str[2] < 'a' && move_str[2] > 'h') ||
+       (move_str[1] < '1' && move_str[1] > '8') ||
+       (move_str[3] < '1' && move_str[3] > '8')){
+
+      Move move;
+      move.valid = false;
+      return move;
+    }
 
     int from = FILE_RANK_TO_SQUARE(move_str[0] - 'a', move_str[1] - '1');
     int to = FILE_RANK_TO_SQUARE(move_str[2] - 'a', move_str[3] - '1');
@@ -46,14 +52,19 @@ Move Move::parse_move(std::string move_str){
 
     Move move(Move::create_move(from, to));
     return move;
-  }else{
+  }else if(move_str.size() > 0 && move_str.size() % 3 == 0){
     Move move;
     for(unsigned int i = 0; i < move_str.size(); i += 3){
       std::string submove_str = move_str.substr(i, 3);
 
-      ASSERT(submove_str[0] >= 'a' && submove_str[0] <= 'h');
-      ASSERT(submove_str[1] >= '1' && submove_str[1] <= '8');
-      ASSERT(IS_PIECE_REPR_VALID(submove_str[2]));
+      if((submove_str[0] < 'a' && submove_str[0] > 'h') ||
+         (submove_str[1] < '1' && submove_str[1] > '8') ||
+         (!IS_PIECE_REPR_VALID(submove_str[2]))){
+
+        Move move;
+        move.valid = false;
+        return move;
+      }
 
       int add_square = FILE_RANK_TO_SQUARE(submove_str[0] - 'a', submove_str[1] - '1');
       int add_piece = -1;
@@ -78,6 +89,10 @@ Move Move::parse_move(std::string move_str){
     }
 
     return move;
+  }else{
+    Move move;
+    move.valid = false;
+    return move;
   }
 }
 
@@ -97,9 +112,17 @@ bool Move::is_add(){
   return false;
 }
 
+bool Move::is_valid(){
+  return this->valid;
+}
+
 void Move::add_move(int move){
   ASSERT(this->is_add() || this->move_count == 0);
   this->move[this->move_count++] = move;
+}
+
+int Move::get_move(int i){
+  return this->move[i];
 }
 
 int Move::get_from(){

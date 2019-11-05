@@ -15,20 +15,23 @@ int main(){
     b.print();
     std::cout << std::endl;
 
-    MoveList move_list = b.generate_all_moves();
-    move_list.print();
-
     std::string in_move;
-    std::cout << "Type in your move: ";
+    std::cout << "Type in your move > ";
     std::cin >> in_move;
 
-    if(in_move == "t"){
-      std::cout << "You took back the last move" << std::endl;
+    if(in_move == "take" || in_move == "t"){
       b.take_move();
+    }else if(in_move == "quit" || in_move == "q"){
+      break;
     }else{
       Move move = Move::parse_move(in_move);
-      std::cout << "You typed: "<< move.get_repr() << std::endl;
-      b.make_move(move);
+
+      if(!move.is_valid()) continue;
+
+      MoveList all_moves = b.generate_all_moves();
+      if(all_moves.is_move_in_list(move)){
+        b.make_move(move);
+      }
     }
   }
 

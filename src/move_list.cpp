@@ -16,6 +16,25 @@ void MoveList::add_new_piece_move(Move move){
   this->add_quiet_move(move);
 }
 
+bool MoveList::is_move_in_list(Move move){
+  for(int i = 0; i < this->count; i++){
+    Move curr_move = this->moves[i];
+    if(curr_move.get_move_size() != move.get_move_size()) continue;
+
+    bool found_diff = false;
+    for(int j = 0; j < curr_move.get_move_size(); j++){
+      if(curr_move.move[j] != move.move[j]){
+        found_diff = true;
+        break;
+      }
+    }
+
+    if(!found_diff) return true;
+  }
+
+  return false;
+}
+
 void MoveList::print(){
   for(int i = 0; i < this->count; i++){
     Move move = this->moves[i];

@@ -17,6 +17,8 @@ public:
   void add_capture_move(Move move);
   void add_new_piece_move(Move move);
 
+  bool is_move_in_list(Move move);
+
   void print();
 };
 
