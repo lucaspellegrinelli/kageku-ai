@@ -117,6 +117,7 @@ public:
 
   bool check_board();
   void print();
+  void print_square_attacks(int side);
 
   void set_fen(char *fen);
   void reset();

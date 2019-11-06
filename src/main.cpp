@@ -5,13 +5,16 @@
 #include "macros.h"
 
 #include "board.h"
+#include "ai.h"
 #include "move.h"
 #include "bitboard.h"
 
 int main(){
   Board *b = new Board();
+  SearchInfo *info = new SearchInfo();
 
   while(true){
+    std::cout << std::endl;
     b->print();
     std::cout << std::endl;
 
@@ -23,13 +26,14 @@ int main(){
       b->take_move();
     }else if(in_move == "quit" || in_move == "q"){
       break;
-    }else if(in_move == "showpv"){
-      int max = b->get_pv_line(4);
-      std::cout << "PV Line of " << max << " moves: ";
-      for(int i = 0; i < max; i++){
-        std::cout << b->get_from_pv_array(i).get_repr() << " ";
+    }else if(in_move == "search" || in_move == "s"){
+      info->depth = 5;
+      AI::search_position(b, info);
+    }else if(in_move == "showmoves" || in_move == "sm"){
+      MoveList all_moves = b->generate_all_moves();
+      for(int i = 0; i < all_moves.count; i++){
+        std::cout << "Move #" << i << ": " << all_moves.moves[i].get_repr() << std::endl;
       }
-      std::cout << std::endl;
     }else{
       Move move = Move::parse_move(in_move);
 
@@ -37,7 +41,6 @@ int main(){
 
       MoveList all_moves = b->generate_all_moves();
       if(all_moves.is_move_in_list(move)){
-        b->add_move_to_hash_table(move);
         b->make_move(move);
       }else{
         std::cout << "Move not parsed" << std::endl;
@@ -45,5 +48,6 @@ int main(){
     }
   }
 
+  delete b;
   return 0;
 }

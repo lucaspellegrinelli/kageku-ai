@@ -4,7 +4,8 @@ Board::Board(){
   this->initialize_piece_keys();
   this->initialize_side_key();
 
-  char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
+  // char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k7/8/ppp5/8/8/8/5PPP/3RR2K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -111,7 +112,7 @@ MoveList Board::generate_all_moves(){
         if((SQUARE_RANK[adj_pos] >= RANK_5) == (side == WHITE)) continue;
 
         if(!position_status[adj_pos]){
-          if(piece == EMPTY) addable_positions[add_count++] = adj_pos;
+          if(piece == EMPTY && i != 0) addable_positions[add_count++] = adj_pos;
           else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_count++] = adj_pos;
           position_status[adj_pos] = true;
         }
@@ -315,7 +316,7 @@ void Board::move_piece(const int from, const int to){
       if(SQUARE_RANK[from] > RANK_4 && SQUARE_RANK[to] <= RANK_4){
         this->mana[BLACK]++;
       }else if(SQUARE_RANK[to] > RANK_4 && SQUARE_RANK[from] <= RANK_4){
-        this->mana[WHITE]--;
+        this->mana[BLACK]--;
       }
     }
   }
@@ -368,18 +369,20 @@ bool Board::make_move(Move move){
       this->king_square[this->side_to_move] = to;
     }
 
-    this->side_to_move ^= 1;
+    this->side_to_move = this->side_to_move == 0 ? 1 : 0;
     HASH_SIDE;
-
-    ASSERT(this->check_board());
 
     if(this->is_square_attacked(this->king_square[side], this->side_to_move)){
       this->take_move();
       return false;
     }
 
+    ASSERT(this->check_board());
+
     return true;
   }else{
+    int side = this->side_to_move;
+
     this->history[this->history_ply].position_key = this->position_key;
     this->history[this->history_ply].move = move;
     this->history[this->history_ply].fifty_move_counter = this->fifty_move_counter;
@@ -398,12 +401,16 @@ bool Board::make_move(Move move){
       ASSERT(IS_SQUARE_ON_BOARD(add_square));
       ASSERT(IS_SIDE_VALID(side));
       ASSERT(this->pieces[add_square] == EMPTY);
-
       this->add_piece(add_piece, add_square);
     }
 
-    this->side_to_move ^= 1;
+    this->side_to_move = this->side_to_move == 0 ? 1 : 0;
     HASH_SIDE;
+
+    if(this->is_square_attacked(this->king_square[side], this->side_to_move)){
+      this->take_move();
+      return false;
+    }
 
     ASSERT(this->check_board());
     return true;
@@ -426,7 +433,7 @@ void Board::take_move(){
     ASSERT(IS_SQUARE_ON_BOARD(to));
 
     this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
-    this->side_to_move ^= 1;
+    this->side_to_move = this->side_to_move == 0 ? 1 : 0;
     HASH_SIDE;
 
     this->move_piece(to, from);
@@ -438,7 +445,7 @@ void Board::take_move(){
     int captured = move.get_captured();
     if(captured != EMPTY){
       ASSERT(IS_PIECE_VALID(captured));
-      this->add_piece(to, captured);
+      this->add_piece(captured, to);
     }
   }else{
     for(int i = 0; i < move.get_move_size(); i++){
@@ -450,7 +457,7 @@ void Board::take_move(){
       ASSERT(this->pieces[add_square] != EMPTY);
 
       this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
-      this->side_to_move ^= 1;
+      this->side_to_move = this->side_to_move == 0 ? 1 : 0;
       HASH_SIDE;
 
       this->clear_piece(add_square);
@@ -468,6 +475,22 @@ bool Board::is_repetition(){
   }
 
   return false;
+}
+
+void Board::print_square_attacks(int side){
+  ASSERT(IS_SIDE_VALID(side));
+  ASSERT(this->check_board());
+
+  for(int i = 7; i >= 0; i--){
+    for(int j = 0; j < 8; j++){
+      int index = i * 8 + j;
+      int sq_120_index = square_from_64_board_to_120_board[index];
+      bool attacked = this->is_square_attacked(sq_120_index, side);
+      std::cout << attacked << " ";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
 }
 
 bool Board::is_square_attacked(int sq, int side){
@@ -800,8 +823,16 @@ U64 Board::generate_position_key(){
 
 void Board::add_move_to_hash_table(Move move){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
+
   std::pair<U64, Move> entry = std::make_pair(this->position_key, move);
-  this->calculated_moves_table.insert(std::make_pair(hash_index, entry));
+  std::pair<int, std::pair<U64, Move>> item = std::make_pair(hash_index, entry);
+
+  if(this->calculated_moves_table.find(hash_index) != this->calculated_moves_table.end()){
+    this->calculated_moves_table[hash_index] = entry;
+  }else{
+    this->calculated_moves_table.insert(item);
+  }
+
 }
 
 Move Board::get_move_from_hash_table(){

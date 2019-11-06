@@ -5,6 +5,7 @@
 
 #include "board.h"
 #include "move.h"
+#include "move_list.h"
 
 #include "defs.h"
 #include "macros.h"
@@ -25,6 +26,9 @@ public:
 
   int quit;
   int stopped;
+
+  float fail_high;
+  float fail_high_first;
 
   SearchInfo(){ }
 };

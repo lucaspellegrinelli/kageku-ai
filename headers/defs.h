@@ -21,7 +21,8 @@ typedef unsigned long long U64;
 
 #define MAX_DEPTH 64
 
-#define INFINITE 2147483645
+#define INFINITE 20000
+#define MATE 10000
 
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
