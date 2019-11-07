@@ -61,8 +61,11 @@ public:
   void add_move(int move);
   int get_move(int i);
 
+  bool is_equal(Move move);
+
   bool is_move();
   bool is_add();
+  bool is_capture();
   bool is_valid();
   void set_valid(bool valid);
 
@@ -70,6 +73,7 @@ public:
   int get_to();
   int get_captured();
   int get_score();
+  void set_score(int score);
 
   int get_add_square(int i);
   int get_add_piece(int i);

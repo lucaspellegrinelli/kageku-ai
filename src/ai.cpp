@@ -1,6 +1,6 @@
 #include "ai.h"
 
-void AI::search_position(Board *board, SearchInfo *info){
+Move AI::search_position(Board *board, SearchInfo *info){
   Move best_move = Move::unvalid_move();
   int best_score = -INFINITE;
   AI::clear_for_search(board, info);
@@ -9,14 +9,17 @@ void AI::search_position(Board *board, SearchInfo *info){
     best_score = AI::alpha_beta(-INFINITE, INFINITE, current_depth, board, info, true);
     int pv_moves = board->get_pv_line(current_depth);
     best_move = board->pv_array[0];
-    std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes;
-    std::cout << "  PV Line: ";
-    for(int i = 0; i < pv_moves; i++){
-      std::cout << board->get_from_pv_array(i).get_repr() << " ";
+    if(DEPTH_LOG){
+      std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes;
+      std::cout << "  PV Line: ";
+      for(int i = 0; i < pv_moves; i++){
+        std::cout << board->get_from_pv_array(i).get_repr() << " ";
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
-    std::cout << "Ordering: " << (info->fail_high_first / info->fail_high) << std::endl;
   }
+
+  return best_move;
 }
 
 int AI::evaluate_board(Board *board){
@@ -60,8 +63,7 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   ASSERT(board->check_board());
 
   if(depth == 0){
-    info->nodes++;
-    return AI::evaluate_board(board);
+    return AI::quiescense(alpha, beta, board, info);
   }
 
   info->nodes++;
@@ -80,8 +82,20 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   int legal_move_count = 0;
   Move best_move = Move::unvalid_move();
   int score = -INFINITE;
+  Move pv_move = board->get_move_from_hash_table();
+
+  if(!pv_move.is_equal(Move::unvalid_move())){
+    for(int i = 0; i < move_list.count; i++){
+      if(move_list.moves[i].is_equal(pv_move)){
+        move_list.moves[i].set_score(2000000);
+        break;
+      }
+    }
+  }
 
   for(int i = 0; i < move_list.count; i++){
+    move_list.reorder_next_move(i);
+
     bool legal_move = board->make_move(move_list.moves[i]);
     if(!legal_move) continue;
 
@@ -95,10 +109,21 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
           info->fail_high_first += 1;
         }
         info->fail_high += 1;
+
+        if(!move_list.moves[i].is_capture()){
+          board->search_killers[1][board->ply] = board->search_killers[0][board->ply];
+          board->search_killers[0][board->ply] = move_list.moves[i];
+        }
+
         return beta;
       }
+
       alpha = score;
       best_move = move_list.moves[i];
+
+      if(!move_list.moves[i].is_capture()){
+        board->search_history[board->pieces[best_move.get_from()]][best_move.get_to()] += depth;
+      }
     }
   }
 
@@ -117,6 +142,57 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   return alpha;
 }
 
-int AI::quiescense(int alpha, int beta, int depth, Board *board, SearchInfo *info){
-  return 0;
+int AI::quiescense(int alpha, int beta, Board *board, SearchInfo *info){
+  ASSERT(board->check_board());
+  info->nodes++;
+
+  if(board->is_repetition() || board->fifty_move_counter >= 100){
+    return 0;
+  }
+
+  int score = AI::evaluate_board(board);
+
+  if(board->ply >= MAX_DEPTH){
+    return score;
+  }
+
+  if(score >= beta) return beta;
+  if(score > alpha) alpha = score;
+
+  MoveList move_list = board->generate_all_moves(true);
+
+  int old_alpha = alpha;
+  int legal_move_count = 0;
+  Move best_move = Move::unvalid_move();
+  score = -INFINITE;
+
+  for(int i = 0; i < move_list.count; i++){
+    move_list.reorder_next_move(i);
+
+    bool legal_move = board->make_move(move_list.moves[i]);
+    if(!legal_move) continue;
+
+    legal_move_count++;
+    score = -AI::quiescense(-beta, -alpha, board, info);
+    board->take_move();
+
+    if(score > alpha){
+      if(score >= beta){
+        if(legal_move_count == 1){
+          info->fail_high_first += 1;
+        }
+        info->fail_high += 1;
+        return beta;
+      }
+
+      alpha = score;
+      best_move = move_list.moves[i];
+    }
+  }
+
+  if(alpha != old_alpha){
+    board->add_move_to_hash_table(best_move);
+  }
+
+  return alpha;
 }

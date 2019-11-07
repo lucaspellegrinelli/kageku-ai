@@ -38,6 +38,15 @@ Move Move::unvalid_move(){
   return m;
 }
 
+bool Move::is_equal(Move move){
+  if(this->move_count != move.get_move_size()) return false;
+  for(int i = 0; i < this->move_count; i++){
+    if(this->move[i] != move.get_move(i)) return false;
+  }
+
+  return true;
+}
+
 Move Move::parse_move(std::string move_str){
   if(move_str.size() == 4){
     if((move_str[0] < 'a' && move_str[0] > 'h') ||
@@ -118,6 +127,11 @@ bool Move::is_add(){
   return false;
 }
 
+bool Move::is_capture(){
+  if(this->move_count > 0) return false;
+  return this->get_captured() != EMPTY;
+}
+
 bool Move::is_valid(){
   return this->valid;
 }
@@ -162,6 +176,10 @@ int Move::get_add_piece(int i){
 
 int Move::get_score(){
   return this->score;
+}
+
+void Move::set_score(int score){
+  this->score = score;
 }
 
 int Move::get_move_size(){

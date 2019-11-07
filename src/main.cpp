@@ -27,8 +27,17 @@ int main(){
     }else if(in_move == "quit" || in_move == "q"){
       break;
     }else if(in_move == "search" || in_move == "s"){
-      info->depth = 5;
+      info->depth = 10;
       AI::search_position(b, info);
+    }else if(in_move == "aiplay"){
+      int depths[2] = {6, 8};
+      for(int i = 0; i < 100; i++){
+        info->depth = depths[i % 2];
+        Move move = AI::search_position(b, info);
+        std::cout << "Im gonna play " << move.get_repr() << std::endl;
+        b->make_move(move);
+        b->print();
+      }
     }else if(in_move == "showmoves" || in_move == "sm"){
       MoveList all_moves = b->generate_all_moves();
       for(int i = 0; i < all_moves.count; i++){
@@ -49,5 +58,6 @@ int main(){
   }
 
   delete b;
+  delete info;
   return 0;
 }

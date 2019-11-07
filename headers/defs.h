@@ -76,6 +76,8 @@ const int IS_NON_SLIDER_PIECE[13] = {false, false, true, false, false, false, tr
 // Defines values for each piece
 const int PIECE_VAL[] = {0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000};
 
+const int VICTIM_SCORE[] = {0, 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600};
+
 // Defines pieces cost to play
 const int PIECE_COST[] = {0, 1, 2, 3, 4, 5, 10, 1, 2, 3, 4, 5, 10};
 

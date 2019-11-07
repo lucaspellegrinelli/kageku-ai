@@ -26,7 +26,7 @@ public:
   Move pv_array[MAX_DEPTH];
 
   int search_history[13][BOARD_SQ_NUM];
-  int search_killers[2][MAX_DEPTH];
+  Move search_killers[2][MAX_DEPTH];
 
   // Board represented as an array of 120 positions (main 64x64 board plus edges)
   int pieces[BOARD_SQ_NUM];
@@ -78,6 +78,8 @@ public:
   // Info about the moves played previously
   MoveInfo history[MAX_GAME_MOVES];
 
+  int mvvlva_scores[13][13];
+
   // Piece list (10 = suppose you start with 2 rooks and promote all 8 pawns to rooks)
   // piece_list[wN][0] = E1, piece_list[wN][1] = D4 ...
   int piece_list[PIECE_TYPES][10] = {
@@ -99,7 +101,7 @@ public:
 // public:
   Board();
 
-  MoveList generate_all_moves();
+  MoveList generate_all_moves(bool only_captures=false);
 
   void clear_piece(const int square);
   void add_piece(const int piece, const int square);
@@ -131,6 +133,7 @@ public:
 
   void initialize_side_key();
   void initialize_piece_keys();
+  void initialize_mvvlva_scores();
 
   ~Board();
 };

@@ -16,6 +16,33 @@ void MoveList::add_new_piece_move(Move move){
   this->add_quiet_move(move);
 }
 
+void MoveList::reverse(){
+  Move moves_cpy[MAX_POSITION_MOVES];
+  for(int i = 0; i < this->count; i++){
+    moves_cpy[i] = this->moves[i];
+  }
+
+  for(int i = this->count - 1; i >= 0; i--){
+    this->moves[this->count - i - 1] = moves_cpy[i];
+  }
+}
+
+void MoveList::reorder_next_move(int move_index){
+  int best_score = 0;
+  int best_index = move_index;
+
+  for(int i = 0; i < this->count; i++){
+    if(this->moves[i].get_score() > best_score){
+      best_score = this->moves[i].get_score();
+      best_index = i;
+    }
+  }
+
+  Move t_move = this->moves[move_index];
+  this->moves[move_index] = this->moves[best_index];
+  this->moves[best_index] = t_move;
+}
+
 bool MoveList::is_move_in_list(Move move){
   for(int i = 0; i < this->count; i++){
     Move curr_move = this->moves[i];
