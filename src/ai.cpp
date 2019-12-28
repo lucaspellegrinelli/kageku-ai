@@ -32,11 +32,11 @@ int AI::evaluate_board(Board *board){
   int black_pawn_value = 0;
 
   for(int i = 0; i < board->piece_count[wP]; i++){
-    white_pawn_value += std::pow(1.8, SQUARE_RANK[board->piece_list[wP][i]]);
+    white_pawn_value += std::pow(2, SQUARE_RANK[board->piece_list[wP][i]] + 3);
   }
 
   for(int i = 0; i < board->piece_count[bP]; i++){
-    black_pawn_value += std::pow(1.8, (RANK_8 - SQUARE_RANK[board->piece_list[bP][i]]));
+    black_pawn_value += std::pow(2, (RANK_8 - SQUARE_RANK[board->piece_list[bP][i]]) + 3);
   }
 
   score += (white_pawn_value - black_pawn_value);
