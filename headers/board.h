@@ -117,6 +117,8 @@ public:
 
   bool is_square_attacked(int sq, int side);
 
+  bool is_promotion(int side);
+
   void update_lists_material();
 
   bool check_board();

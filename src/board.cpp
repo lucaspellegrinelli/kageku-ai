@@ -192,15 +192,29 @@ MoveList Board::generate_all_moves(bool only_captures){
         if(option_comb[add_qtd] > 0) break;
 
         int option_price = 0;
+        int option_qtd[PIECE_TYPES];
+        for(int i = 0; i < PIECE_TYPES; i++){
+          option_qtd[i] = this->piece_count[i];
+        }
+
         std::vector<int> end_option_comb;
         for(size_t i = 0; i < option_comb.size() - 1; i++){
           int piece_add = side_pieces[this->side_to_move][option_comb[i]];
           ASSERT(IS_PIECE_VALID(piece_add));
           option_price += PIECE_COST[piece_add];
+          option_qtd[piece_add]++;
           end_option_comb.push_back(piece_add);
         }
 
-        if(option_price <= this->mana[side]){
+        bool is_qtd_ok = true;
+        for(int i = 1; i < PIECE_TYPES; i++){
+          if(option_qtd[i] > PIECE_MAX[i]){
+            is_qtd_ok = false;
+            break;
+          }
+        }
+
+        if(option_price <= this->mana[side] && is_qtd_ok){
           all_option_comb.push_back(end_option_comb);
         }
 
@@ -403,6 +417,12 @@ bool Board::make_move(Move move){
 
     this->fifty_move_counter++;
 
+    // if(move.get_repr() == "e1Pg4Pf3P"){
+    //   std::cout << "\n\n\n\n\n\n";
+    //   std::cout << move.get_repr() << std::endl;
+    //   this->print();
+    // }
+
     for(int i = 0; i < move.get_move_size(); i++){
       int add_square = move.get_add_square(i);
       int add_piece = move.get_add_piece(i);
@@ -414,6 +434,11 @@ bool Board::make_move(Move move){
       ASSERT(this->pieces[add_square] == EMPTY);
       this->add_piece(add_piece, add_square);
     }
+
+    // if(move.get_repr() == "e1Pg4Pf3P"){
+    //   this->print();
+    //   std::cout << "\n\n\n\n\n\n";
+    // }
 
     this->side_to_move = this->side_to_move == 0 ? 1 : 0;
     HASH_SIDE;
@@ -563,6 +588,19 @@ bool Board::is_square_attacked(int sq, int side){
   return false;
 }
 
+bool Board::is_promotion(int side){
+  int start_pos = side == WHITE ? 91 : 21;
+  int pawn_side = side == WHITE ? wP : bP;
+
+  for(int i = 0; i < 8; i++){
+    if(this->pieces[start_pos + i] == pawn_side){
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void Board::update_lists_material(){
   bool has_close_pawn[2] = {false, false};
 
@@ -622,6 +660,9 @@ bool Board::check_board(){
   for(int t_piece = wP; t_piece <= bK; t_piece++){
     for(int t_count = 0; t_count < this->piece_count[t_piece]; t_count++){
       int sq120 = this->piece_list[t_piece][t_count];
+      if(this->pieces[sq120] != t_piece){
+        std::cout << this->pieces[sq120] << " != " << t_piece << " in " << sq120 << std::endl;
+      }
       ASSERT(this->pieces[sq120] == t_piece);
     }
   }
@@ -867,22 +908,6 @@ int Board::get_pv_line(int depth){
     ASSERT(count < MAX_DEPTH);
 
     if(this->generate_all_moves().is_move_in_list(move)){
-
-      /////////////
-      if(move.is_add()){
-        for(int o = 0; o < move.get_move_size(); o++){
-          int add_square = move.get_add_square(o);
-          int add_piece = move.get_add_piece(o);
-          int side = this->side_to_move;
-
-          ASSERT(IS_PIECE_VALID(add_piece));
-          ASSERT(IS_SQUARE_ON_BOARD(add_square));
-          ASSERT(IS_SIDE_VALID(side));
-          ASSERT(this->pieces[add_square] == EMPTY);
-        }
-      }
-      ////////////
-
       this->make_move(move);
       this->pv_array[count++] = move;
     }else{

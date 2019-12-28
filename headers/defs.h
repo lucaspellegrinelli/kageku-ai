@@ -16,7 +16,7 @@ typedef unsigned long long U64;
 #define MAX_POSITION_MOVES 256
 
 // Maximum number of adds a move can have
-#define MAX_ADD_PER_MOVE 5
+#define MAX_ADD_PER_MOVE 0
 
 #define NOMOVE 0
 

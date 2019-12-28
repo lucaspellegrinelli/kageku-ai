@@ -76,8 +76,6 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
     return AI::evaluate_board(board);
   }
 
-  // board->print();
-
   MoveList move_list = board->generate_all_moves();
 
   int old_alpha = alpha;
@@ -98,43 +96,18 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   for(int i = 0; i < move_list.count; i++){
     move_list.reorder_next_move(i);
 
-    /////////////
-    if(move_list.moves[i].is_add()){
-      for(int o = 0; o < move_list.moves[i].get_move_size(); o++){
-        int add_square = move_list.moves[i].get_add_square(o);
-        int add_piece = move_list.moves[i].get_add_piece(o);
-        int side = board->side_to_move;
-
-        ASSERT(IS_PIECE_VALID(add_piece));
-        ASSERT(IS_SQUARE_ON_BOARD(add_square));
-        ASSERT(IS_SIDE_VALID(side));
-        ASSERT(board->pieces[add_square] == EMPTY);
-      }
-    }
-    ////////////
-
     bool legal_move = board->make_move(move_list.moves[i]);
     if(!legal_move) continue;
-
-    for(int i = 0; i < 8; i++){
-      if(board->pieces[21 + i] == bP){
-        board->take_move();
-        board->add_move_to_hash_table(move_list.moves[i]);
-        if(board->side_to_move == WHITE) return -MATE + board->ply;
-        else return MATE - board->ply;
-      }
-
-      if(board->pieces[i + 91] == wP){
-        board->take_move();
-        board->add_move_to_hash_table(move_list.moves[i]);
-        if(board->side_to_move == BLACK) return -MATE + board->ply;
-        else return MATE - board->ply;
-      }
-    }
 
     legal_move_count++;
     score = -AI::alpha_beta(-beta, -alpha, depth - 1, board, info, true);
     board->take_move();
+
+    if(board->is_promotion(board->side_to_move)){
+      score = MATE - board->ply;
+    }else if(board->is_promotion(!board->side_to_move)){
+      score = -MATE + board->ply;
+    }
 
     if(score > alpha){
       if(score >= beta){
@@ -163,24 +136,16 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   int side = board->side_to_move;
   int opp_side = side == WHITE ? BLACK : WHITE;
 
-  for(int i = 0; i < 8; i++){
-    if(board->pieces[21 + i] == bP){
-      board->add_move_to_hash_table(best_move);
-      if(board->side_to_move == WHITE) return -MATE + board->ply;
-      else return MATE - board->ply;
-    }
-
-    if(board->pieces[i + 91] == wP){
-      board->add_move_to_hash_table(best_move);
-      if(board->side_to_move == BLACK) return -MATE + board->ply;
-      else return MATE - board->ply;
-    }
-  }
-
   if(legal_move_count == 0){
     if(board->is_square_attacked(board->king_square[side], opp_side)){
       alpha = -MATE + board->ply;
     }else return 0;
+  }else{
+    if(board->is_promotion(side)){
+      alpha = MATE - board->ply;
+    }else if(board->is_promotion(opp_side)){
+      alpha = -MATE + board->ply;
+    }
   }
 
   if(alpha != old_alpha){
@@ -235,20 +200,6 @@ int AI::quiescense(int alpha, int beta, Board *board, SearchInfo *info){
 
       alpha = score;
       best_move = move_list.moves[i];
-    }
-  }
-
-  for(int i = 0; i < 8; i++){
-    if(board->pieces[21 + i] == bP){
-      board->add_move_to_hash_table(best_move);
-      if(board->side_to_move == WHITE) return -MATE + board->ply;
-      else return MATE - board->ply;
-    }
-
-    if(board->pieces[i + 91] == wP){
-      board->add_move_to_hash_table(best_move);
-      if(board->side_to_move == BLACK) return -MATE + board->ply;
-      else return MATE - board->ply;
     }
   }
 
