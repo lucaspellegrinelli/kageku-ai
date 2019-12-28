@@ -121,7 +121,7 @@ bool Move::is_move(){
 
 bool Move::is_add(){
   if(this->move_count > 0){
-    return ~((this->move[0] >> 18) & 0x1);
+    return !((this->move[0] >> 18) & 0x1);
   }
 
   return false;

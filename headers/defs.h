@@ -15,6 +15,9 @@ typedef unsigned long long U64;
 // Maximum number of possible moves per position
 #define MAX_POSITION_MOVES 256
 
+// Maximum number of adds a move can have
+#define MAX_ADD_PER_MOVE 5
+
 #define NOMOVE 0
 
 #define PV_TABLE_ENTRY_COUNT 1000000

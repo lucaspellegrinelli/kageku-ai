@@ -21,7 +21,8 @@ public:
 
   void reverse();
 
-  bool is_move_in_list(Move move);
+  bool is_move_in_list(Move move, bool strict=true);
+  Move get_aprox_move_in_list(Move move);
 
   void print();
 };

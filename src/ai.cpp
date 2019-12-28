@@ -11,7 +11,7 @@ Move AI::search_position(Board *board, SearchInfo *info){
     best_move = board->pv_array[0];
     if(DEPTH_LOG){
       std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes;
-      std::cout << "  PV Line: ";
+      std::cout << "  PV Line: (" << pv_moves << ") ";
       for(int i = 0; i < pv_moves; i++){
         std::cout << board->get_from_pv_array(i).get_repr() << " ";
       }
@@ -76,6 +76,8 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
     return AI::evaluate_board(board);
   }
 
+  // board->print();
+
   MoveList move_list = board->generate_all_moves();
 
   int old_alpha = alpha;
@@ -96,8 +98,39 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   for(int i = 0; i < move_list.count; i++){
     move_list.reorder_next_move(i);
 
+    /////////////
+    if(move_list.moves[i].is_add()){
+      for(int o = 0; o < move_list.moves[i].get_move_size(); o++){
+        int add_square = move_list.moves[i].get_add_square(o);
+        int add_piece = move_list.moves[i].get_add_piece(o);
+        int side = board->side_to_move;
+
+        ASSERT(IS_PIECE_VALID(add_piece));
+        ASSERT(IS_SQUARE_ON_BOARD(add_square));
+        ASSERT(IS_SIDE_VALID(side));
+        ASSERT(board->pieces[add_square] == EMPTY);
+      }
+    }
+    ////////////
+
     bool legal_move = board->make_move(move_list.moves[i]);
     if(!legal_move) continue;
+
+    for(int i = 0; i < 8; i++){
+      if(board->pieces[21 + i] == bP){
+        board->take_move();
+        board->add_move_to_hash_table(move_list.moves[i]);
+        if(board->side_to_move == WHITE) return -MATE + board->ply;
+        else return MATE - board->ply;
+      }
+
+      if(board->pieces[i + 91] == wP){
+        board->take_move();
+        board->add_move_to_hash_table(move_list.moves[i]);
+        if(board->side_to_move == BLACK) return -MATE + board->ply;
+        else return MATE - board->ply;
+      }
+    }
 
     legal_move_count++;
     score = -AI::alpha_beta(-beta, -alpha, depth - 1, board, info, true);
@@ -121,17 +154,32 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
       alpha = score;
       best_move = move_list.moves[i];
 
-      if(!move_list.moves[i].is_capture()){
+      if(!move_list.moves[i].is_capture() && best_move.is_move()){
         board->search_history[board->pieces[best_move.get_from()]][best_move.get_to()] += depth;
       }
     }
   }
 
+  int side = board->side_to_move;
+  int opp_side = side == WHITE ? BLACK : WHITE;
+
+  for(int i = 0; i < 8; i++){
+    if(board->pieces[21 + i] == bP){
+      board->add_move_to_hash_table(best_move);
+      if(board->side_to_move == WHITE) return -MATE + board->ply;
+      else return MATE - board->ply;
+    }
+
+    if(board->pieces[i + 91] == wP){
+      board->add_move_to_hash_table(best_move);
+      if(board->side_to_move == BLACK) return -MATE + board->ply;
+      else return MATE - board->ply;
+    }
+  }
+
   if(legal_move_count == 0){
-    int side = board->side_to_move;
-    int opp_side = side == 0 ? 1 : 0;
     if(board->is_square_attacked(board->king_square[side], opp_side)){
-      return -MATE + board->ply;
+      alpha = -MATE + board->ply;
     }else return 0;
   }
 
@@ -187,6 +235,20 @@ int AI::quiescense(int alpha, int beta, Board *board, SearchInfo *info){
 
       alpha = score;
       best_move = move_list.moves[i];
+    }
+  }
+
+  for(int i = 0; i < 8; i++){
+    if(board->pieces[21 + i] == bP){
+      board->add_move_to_hash_table(best_move);
+      if(board->side_to_move == WHITE) return -MATE + board->ply;
+      else return MATE - board->ply;
+    }
+
+    if(board->pieces[i + 91] == wP){
+      board->add_move_to_hash_table(best_move);
+      if(board->side_to_move == BLACK) return -MATE + board->ply;
+      else return MATE - board->ply;
     }
   }
 

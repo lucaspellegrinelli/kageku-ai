@@ -6,6 +6,8 @@
 #include <chrono>
 #include <unordered_map>
 #include <utility>
+#include <vector>
+#include <algorithm>
 
 #include "stdlib.h"
 

@@ -5,7 +5,7 @@ Board::Board(){
   this->initialize_side_key();
   this->initialize_mvvlva_scores();
 
-  char starting_fen[] = "k1r5/ppp5/8/8/8/8/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/6PP/8/8/8/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -39,12 +39,20 @@ MoveList Board::generate_all_moves(bool only_captures){
 
       Move move(Move::create_move(sq, forward_sq));
 
-      if(this->search_killers[0][this->ply].is_equal(move)){
+      if((SQUARE_RANK[move.get_to()] == RANK_1 && side == BLACK) || (SQUARE_RANK[move.get_to()] == RANK_8 && side == WHITE)){
+        move.set_score(990000);
+      }else if(this->search_killers[0][this->ply].is_equal(move)){
         move.set_score(900000);
       }else if(this->search_killers[1][this->ply].is_equal(move)){
         move.set_score(800000);
       }else{
         move.set_score(this->search_history[this->pieces[sq]][forward_sq]);
+      }
+
+      if(list.count == 255){
+        this->print();
+        std::cout << "Number of moves:" << list.count << std::endl;
+        list.print();
       }
 
       list.add_quiet_move(move);
@@ -135,7 +143,7 @@ MoveList Board::generate_all_moves(bool only_captures){
           if((SQUARE_RANK[adj_pos] >= RANK_5) == (side == WHITE)) continue;
 
           if(!position_status[adj_pos]){
-            if(piece == EMPTY && i != 0) addable_positions[add_count++] = adj_pos;
+            if(piece == EMPTY) addable_positions[add_count++] = adj_pos;
             else if(PIECE_COLOR[piece] == side) unchecked_positions[unchecked_count++] = adj_pos;
             position_status[adj_pos] = true;
           }
@@ -144,106 +152,85 @@ MoveList Board::generate_all_moves(bool only_captures){
     }
 
     // Each line is a move, each column a position on the board a piece is added
-    int all_adds[1024][32];
+    int all_adds[MAX_POSITION_MOVES][MAX_ADD_PER_MOVE];
     int all_adds_size = 0;
     int each_add_size[MAX_POSITION_MOVES];
-    for(int i = 0; i < 61; each_add_size[i++] = 0);
+    for(int i = 0; i < MAX_POSITION_MOVES; each_add_size[i++] = 0);
 
-    int no_add = 0;
+    for(int add_qtd = 1; add_qtd <= MAX_ADD_PER_MOVE; add_qtd++){
+      std::vector<bool> v = std::vector<bool>(add_count);
+    	std::fill(v.begin(), v.begin() + add_qtd, true);
+    	std::vector<std::vector<int>> positions_to_add;
 
-    int curr_add_size = 0;
-    int last_adds_size = 0;
-    for(int i = 0; i < add_count; i++){
-      int pos = addable_positions[i];
+    	do {
+    		std::vector<int> c_perm;
+    		for (int i = 0; i < add_count; ++i) {
+    			if (v[i]) c_perm.push_back(i);
+    		}
 
-      curr_add_size = all_adds_size;
+        std::vector<int> end_c_perm;
+        for(size_t i = 0; i < c_perm.size(); i++){
+          end_c_perm.push_back(addable_positions[c_perm[i]]);
+        }
+    		positions_to_add.push_back(end_c_perm);
+    	}while (std::prev_permutation(v.begin(), v.end()));
 
-      if(all_adds_size == 0){
-        all_adds[all_adds_size][0] = no_add;
-        each_add_size[all_adds_size] = 1;
-        all_adds_size++;
+      // Each line in 'positions_to_add' is a list of positions of size 'add_qtd'
+      // where the code will add some piece
 
-        // For each piece of that player side
-        for(int piece : side_pieces[side]){
-          int cost = PIECE_COST[piece];
+      const int option_count = 5; // Pawn, Knight, Bishop, Rook and Queen
+      std::vector<std::vector<int>> all_option_comb;
+      std::vector<int> option_comb(add_qtd + 1, 0);
+      while(true){
+        for(int i = 0; i < add_qtd; i++){
+          if(option_comb[i] >= option_count){
+            option_comb[i + 1]++;
+            for(int k = i; k >= 0; option_comb[k--] = option_comb[i + 1]);
+          }
+        }
 
-          // If you can add that piece
-          if(cost <= this->mana[side] && this->piece_count[piece] < PIECE_MAX[piece]){
-            all_adds[all_adds_size][each_add_size[all_adds_size]] = Move::create_add(pos, piece);
-            each_add_size[all_adds_size]++;
+        if(option_comb[add_qtd] > 0) break;
+
+        int option_price = 0;
+        std::vector<int> end_option_comb;
+        for(size_t i = 0; i < option_comb.size() - 1; i++){
+          int piece_add = side_pieces[this->side_to_move][option_comb[i]];
+          ASSERT(IS_PIECE_VALID(piece_add));
+          option_price += PIECE_COST[piece_add];
+          end_option_comb.push_back(piece_add);
+        }
+
+        if(option_price <= this->mana[side]){
+          all_option_comb.push_back(end_option_comb);
+        }
+
+        option_comb[0]++;
+      }
+
+      // Each line in 'all_option_comb' is a list of pieces of size 'add_qtd'
+      // to be added in one of the positions
+
+      for(std::vector<int> c_pos_to_add : positions_to_add){
+        for(std::vector<int> c_options : all_option_comb){
+          // Permutating the options list so that each piece is in each position
+          do{
+            each_add_size[all_adds_size] = c_pos_to_add.size();
+            for(size_t i = 0; i < c_pos_to_add.size(); i++){
+              all_adds[all_adds_size][i] = Move::create_add(c_pos_to_add[i], c_options[i]);
+            }
             all_adds_size++;
-          }
+          }while(std::next_permutation(c_options.begin(), c_options.end()));
         }
-      }else{
-        for(int add_line_i = last_adds_size; add_line_i < all_adds_size; add_line_i++){
-          // Keeps track of the current mana available
-          int curr_mana = this->mana[side];
-
-          // Keeps track of the current number of each of the pieces
-          int curr_piece_count[6];
-          for(int piece_i = 0; piece_i < 6; piece_i++){
-            curr_piece_count[piece_i] = this->piece_count[side_pieces[side][piece_i]];
-          }
-
-          for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
-            int add_move = all_adds[add_line_i][add_i];
-            int piece_added = (add_move >> 7) & 0xF;
-
-            ASSERT(IS_PIECE_VALID_OR_EMPTY(piece_added));
-
-            // Updates current mana que current piece count
-            if(IS_PIECE_VALID(piece_added)){
-              curr_mana -= PIECE_COST[piece_added];
-              int p_index = PIECE_SIDE_INDEX(piece_added);
-              curr_piece_count[p_index]++;
-            }
-          }
-
-          // Copies the current moves in this move line
-          for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
-            all_adds[curr_add_size][add_i] = all_adds[add_line_i][add_i];
-          }
-
-          // Adds the new move to it
-          all_adds[curr_add_size][each_add_size[add_line_i]] = no_add;
-          each_add_size[curr_add_size] = each_add_size[add_line_i] + 1;
-          curr_add_size++;
-
-          for(int piece : side_pieces[side]){
-            int cost = PIECE_COST[piece];
-            int piece_count_id = PIECE_SIDE_INDEX(piece);
-
-            // If you can add that piece
-            if(cost <= curr_mana && curr_piece_count[piece_count_id] < PIECE_MAX[piece]){
-              int piece_id = Move::create_add(pos, piece);
-              // Copies the current moves in this move line
-              for(int add_i = 0; add_i < each_add_size[add_line_i]; add_i++){
-                all_adds[curr_add_size][add_i] = all_adds[add_line_i][add_i];
-              }
-
-              // Adds the new move to it
-              all_adds[curr_add_size][each_add_size[add_line_i]] = piece_id;
-              each_add_size[curr_add_size] = each_add_size[add_line_i] + 1;
-              curr_add_size++;
-
-              curr_piece_count[piece]++;
-            }
-          }
-        }
-
-        last_adds_size = all_adds_size;
-        all_adds_size = curr_add_size;
       }
     }
 
-    for(int i = last_adds_size; i < all_adds_size; i++){
-      if(each_add_size[i] < add_count) continue;
+    for(int i = 0; i < all_adds_size; i++){
       Move move;
       for(int j = 0; j < each_add_size[i]; j++){
-        if(all_adds[i][j] != no_add) move.add_move(all_adds[i][j]);
+        move.add_move(all_adds[i][j]);
       }
 
-      if(move.get_move_size() > 0) list.add_new_piece_move(move);
+      list.add_new_piece_move(move);
     }
   }
 
@@ -387,7 +374,6 @@ bool Board::make_move(Move move){
     this->history_ply++;
     this->ply++;
 
-    std::cout << "Moved" << std::endl;
     this->move_piece(from, to);
 
     if(IS_PIECE_KING[this->pieces[to]]){
@@ -481,12 +467,12 @@ void Board::take_move(){
       ASSERT(IS_SQUARE_ON_BOARD(add_square));
       ASSERT(this->pieces[add_square] != EMPTY);
 
-      this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
-      this->side_to_move = this->side_to_move == 0 ? 1 : 0;
-      HASH_SIDE;
-
       this->clear_piece(add_square);
     }
+
+    this->fifty_move_counter = this->history[this->history_ply].fifty_move_counter;
+    this->side_to_move = this->side_to_move == 0 ? 1 : 0;
+    HASH_SIDE;
   }
 
   ASSERT(this->check_board());
@@ -857,18 +843,18 @@ void Board::add_move_to_hash_table(Move move){
   }else{
     this->calculated_moves_table.insert(item);
   }
-
 }
 
 Move Board::get_move_from_hash_table(){
   int hash_index = this->position_key % PV_TABLE_ENTRY_COUNT;
+
   std::pair<U64, Move> entry = this->calculated_moves_table[hash_index];
 
-  if(entry.second.get_move_size() > 0 && entry.first == this->position_key){
+  if(entry.first == this->position_key){
     return entry.second;
-  }else{
-    return Move::unvalid_move();
   }
+
+  return Move::unvalid_move();
 }
 
 int Board::get_pv_line(int depth){
@@ -881,6 +867,22 @@ int Board::get_pv_line(int depth){
     ASSERT(count < MAX_DEPTH);
 
     if(this->generate_all_moves().is_move_in_list(move)){
+
+      /////////////
+      if(move.is_add()){
+        for(int o = 0; o < move.get_move_size(); o++){
+          int add_square = move.get_add_square(o);
+          int add_piece = move.get_add_piece(o);
+          int side = this->side_to_move;
+
+          ASSERT(IS_PIECE_VALID(add_piece));
+          ASSERT(IS_SQUARE_ON_BOARD(add_square));
+          ASSERT(IS_SIDE_VALID(side));
+          ASSERT(this->pieces[add_square] == EMPTY);
+        }
+      }
+      ////////////
+
       this->make_move(move);
       this->pv_array[count++] = move;
     }else{
