@@ -11,7 +11,7 @@ Move AI::search_position(Board *board, SearchInfo *info){
     best_move = board->pv_array[0];
     if(DEPTH_LOG){
       std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes;
-      std::cout << "  PV Line: (" << pv_moves << ") ";
+      std::cout << "  PV Line: ";
       for(int i = 0; i < pv_moves; i++){
         std::cout << board->get_from_pv_array(i).get_repr() << " ";
       }
@@ -27,6 +27,12 @@ int AI::evaluate_board(Board *board){
   int mana = board->mana[WHITE] - board->mana[BLACK];
 
   int score = material + mana;
+
+  if(board->is_promotion(board->side_to_move)){
+    return MATE - board->ply;
+  }else if(board->is_promotion(!board->side_to_move)){
+    return -MATE + board->ply;
+  }
 
   if(board->side_to_move == WHITE) return score;
   else return -score;

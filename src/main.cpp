@@ -27,7 +27,7 @@ int main(){
     }else if(in_move == "quit" || in_move == "q"){
       break;
     }else if(in_move == "search" || in_move == "s"){
-      info->depth = 6;
+      info->depth = 9;
       AI::search_position(b, info);
     }else if(in_move == "aiplay"){
       int depths[2] = {6, 8};

@@ -5,7 +5,7 @@ Board::Board(){
   this->initialize_side_key();
   this->initialize_mvvlva_scores();
 
-  char starting_fen[] = "k1r5/ppp5/6PP/8/8/8/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/8/6PP/8/8/5P1P/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
