@@ -5,7 +5,7 @@ Board::Board(){
   this->initialize_side_key();
   this->initialize_mvvlva_scores();
 
-  char starting_fen[] = "k1r5/ppp5/8/6PP/8/8/5P1P/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/1p6/4n1PP/1p6/6P1/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -241,6 +241,7 @@ MoveList Board::generate_all_moves(bool only_captures){
     for(int i = 0; i < all_adds_size; i++){
       Move move;
       for(int j = 0; j < each_add_size[i]; j++){
+        move.set_score(800000);
         move.add_move(all_adds[i][j]);
       }
 

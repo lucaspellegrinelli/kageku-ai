@@ -86,25 +86,24 @@ Move MoveList::get_aprox_move_in_list(Move move){
   for(int i = 0; i < this->count; i++){
     Move curr_move = this->moves[i];
     if(curr_move.get_move_size() != move.get_move_size()) continue;
+    if(curr_move.is_add() != move.is_add()) continue;
+    if(curr_move.is_move() != move.is_move()) continue;
 
     bool is_same_move = true;
-
-    if(curr_move.is_add()){
+    if(move.is_add()){
       for(int j = 0; j < curr_move.get_move_size(); j++){
         if(curr_move.get_move(j) != move.get_move(j)){
           is_same_move = false;
           break;
         }
       }
-    }else{
+    }else if(move.is_move()){
       if(curr_move.get_from() != move.get_from() || curr_move.get_to() != move.get_to()){
         is_same_move = false;
       }
     }
 
-    if(is_same_move){
-      return curr_move;
-    }
+    if(is_same_move) return curr_move;
   }
 
   return Move::unvalid_move();

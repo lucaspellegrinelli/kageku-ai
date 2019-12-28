@@ -7,7 +7,7 @@
 #define DEPTH_LOG true
 
 // Define an assert
-#define DEBUG
+// #define DEBUG
 #ifndef DEBUG
 #define ASSERT(n)
 #else

@@ -2,6 +2,7 @@
 #define AI_H
 
 #include <chrono>
+#include <math.h>
 
 #include "board.h"
 #include "move.h"

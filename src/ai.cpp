@@ -10,7 +10,8 @@ Move AI::search_position(Board *board, SearchInfo *info){
     int pv_moves = board->get_pv_line(current_depth);
     best_move = board->pv_array[0];
     if(DEPTH_LOG){
-      std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes;
+      double ord_factor = ((double)info->fail_high_first / info->fail_high);
+      std::cout << "Depth: " << current_depth << "  Score: " << best_score << "  Move: " << best_move.get_repr() << "  Nodes: " << info->nodes << "  Ord: " << ord_factor;
       std::cout << "  PV Line: ";
       for(int i = 0; i < pv_moves; i++){
         std::cout << board->get_from_pv_array(i).get_repr() << " ";
@@ -25,17 +26,26 @@ Move AI::search_position(Board *board, SearchInfo *info){
 int AI::evaluate_board(Board *board){
   int material = board->material[WHITE] - board->material[BLACK];
   int mana = board->mana[WHITE] - board->mana[BLACK];
-
   int score = material + mana;
 
-  if(board->is_promotion(board->side_to_move)){
-    return MATE - board->ply;
-  }else if(board->is_promotion(!board->side_to_move)){
-    return -MATE + board->ply;
+  int white_pawn_value = 0;
+  int black_pawn_value = 0;
+
+  for(int i = 0; i < board->piece_count[wP]; i++){
+    white_pawn_value += std::pow(1.8, SQUARE_RANK[board->piece_list[wP][i]]);
   }
 
-  if(board->side_to_move == WHITE) return score;
-  else return -score;
+  for(int i = 0; i < board->piece_count[bP]; i++){
+    black_pawn_value += std::pow(1.8, (RANK_8 - SQUARE_RANK[board->piece_list[bP][i]]));
+  }
+
+  score += (white_pawn_value - black_pawn_value);
+
+  if(board->side_to_move == WHITE){
+    return score;
+  }else{
+    return -score;
+  }
 }
 
 void AI::check_up(){
@@ -79,7 +89,13 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   }
 
   if(board->ply >= MAX_DEPTH){
-    return AI::evaluate_board(board);
+    if(board->is_promotion(board->side_to_move)){
+      return MATE - board->ply;
+    }else if(board->is_promotion(!board->side_to_move)){
+      return -MATE + board->ply;
+    }else{
+      return AI::evaluate_board(board);
+    }
   }
 
   MoveList move_list = board->generate_all_moves();
@@ -109,18 +125,12 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
     score = -AI::alpha_beta(-beta, -alpha, depth - 1, board, info, true);
     board->take_move();
 
-    if(board->is_promotion(board->side_to_move)){
-      score = MATE - board->ply;
-    }else if(board->is_promotion(!board->side_to_move)){
-      score = -MATE + board->ply;
-    }
-
     if(score > alpha){
       if(score >= beta){
         if(legal_move_count == 1){
-          info->fail_high_first += 1;
+          info->fail_high_first++;
         }
-        info->fail_high += 1;
+        info->fail_high++;
 
         if(!move_list.moves[i].is_capture()){
           board->search_killers[1][board->ply] = board->search_killers[0][board->ply];
@@ -146,12 +156,6 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
     if(board->is_square_attacked(board->king_square[side], opp_side)){
       alpha = -MATE + board->ply;
     }else return 0;
-  }else{
-    if(board->is_promotion(side)){
-      alpha = MATE - board->ply;
-    }else if(board->is_promotion(opp_side)){
-      alpha = -MATE + board->ply;
-    }
   }
 
   if(alpha != old_alpha){
@@ -169,7 +173,14 @@ int AI::quiescense(int alpha, int beta, Board *board, SearchInfo *info){
     return 0;
   }
 
-  int score = AI::evaluate_board(board);
+  int score = 0;
+  if(board->is_promotion(board->side_to_move)){
+    score = MATE - board->ply;
+  }else if(board->is_promotion(!board->side_to_move)){
+    score = -MATE + board->ply;
+  }else{
+    score = AI::evaluate_board(board);
+  }
 
   if(board->ply >= MAX_DEPTH){
     return score;
