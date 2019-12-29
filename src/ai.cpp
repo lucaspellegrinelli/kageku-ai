@@ -1,6 +1,9 @@
 #include "ai.h"
 
 int AI::evaluate_board(Board *board){
+  if(board->is_promotion(board->side_to_move)) return MATE - board->ply;
+  else if(board->is_promotion(!board->side_to_move)) return -MATE + board->ply;
+
   int material = board->material[WHITE] - board->material[BLACK];
   int mana = board->mana[WHITE] - board->mana[BLACK];
   int score = material + mana;
@@ -79,6 +82,10 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
     return AI::quiescense(alpha, beta, board, info);
   }
 
+  if(board->is_promoted_game_over()){
+    return alpha;
+  }
+
   info->nodes++;
 
   if(board->is_repetition() || board->fifty_move_counter >= 100){
@@ -86,13 +93,7 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
   }
 
   if(board->ply >= MAX_DEPTH){
-    if(board->is_promotion(board->side_to_move)){
-      return MATE - board->ply;
-    }else if(board->is_promotion(!board->side_to_move)){
-      return -MATE + board->ply;
-    }else{
-      return AI::evaluate_board(board);
-    }
+    return AI::evaluate_board(board);
   }
 
   MoveList move_list = board->generate_all_moves();
@@ -120,6 +121,11 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
 
     legal_move_count++;
     score = -AI::alpha_beta(-beta, -alpha, depth - 1, board, info, true);
+
+    if(board->is_promoted_game_over()){
+      score = MATE - board->ply;
+    }
+
     board->take_move();
 
     if(score > alpha){
@@ -143,8 +149,6 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
       if(!move_list.moves[i].is_capture()){
         if(best_move.is_move()){
           board->search_history[board->pieces[best_move.get_from()]][best_move.get_to()] += depth;
-        }else if(best_move.is_add()){
-          board->search_history[best_move.get_add_piece(0)][best_move.get_add_square(0)] += depth;
         }
       }
     }
@@ -174,14 +178,7 @@ int AI::quiescense(int alpha, int beta, Board *board, SearchInfo *info){
     return 0;
   }
 
-  int score = 0;
-  if(board->is_promotion(board->side_to_move)){
-    score = MATE - board->ply;
-  }else if(board->is_promotion(!board->side_to_move)){
-    score = -MATE + board->ply;
-  }else{
-    score = AI::evaluate_board(board);
-  }
+  int score = AI::evaluate_board(board);
 
   if(board->ply >= MAX_DEPTH){
     return score;

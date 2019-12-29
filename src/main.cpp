@@ -27,10 +27,10 @@ int main(){
     }else if(in_move == "quit" || in_move == "q"){
       break;
     }else if(in_move == "search" || in_move == "s"){
-      info->depth = 11;
+      info->depth = 7;
       AI::search_position(b, info);
     }else if(in_move == "aiplay"){
-      int depths[2] = {6, 8};
+      int depths[2] = {4, 6};
       for(int i = 0; i < 100; i++){
         info->depth = depths[i % 2];
         Move move = AI::search_position(b, info);

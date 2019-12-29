@@ -118,6 +118,7 @@ public:
   bool is_square_attacked(int sq, int side);
 
   bool is_promotion(int side);
+  bool is_promoted_game_over();
 
   void update_lists_material();
 

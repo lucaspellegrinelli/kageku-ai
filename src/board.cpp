@@ -5,7 +5,7 @@ Board::Board(){
   this->initialize_side_key();
   this->initialize_mvvlva_scores();
 
-  char starting_fen[] = "k1r5/ppp5/1p6/6PP/1p6/8/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp3P1/8/8/8/8/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -579,16 +579,18 @@ bool Board::is_square_attacked(int sq, int side){
 }
 
 bool Board::is_promotion(int side){
-  int start_pos = side == WHITE ? 91 : 21;
   int pawn_side = side == WHITE ? wP : bP;
 
-  for(int i = 0; i < 8; i++){
-    if(this->pieces[start_pos + i] == pawn_side){
-      return true;
-    }
+  for(int i = 0; i < this->piece_count[pawn_side]; i++){
+    if(side == WHITE && SQUARE_RANK[this->piece_list[wP][i]] == RANK_8) return true;
+    if(side == BLACK && SQUARE_RANK[this->piece_list[bP][i]] == RANK_1) return true;
   }
 
   return false;
+}
+
+bool Board::is_promoted_game_over(){
+  return this->is_promotion(WHITE) || this->is_promotion(BLACK);
 }
 
 void Board::update_lists_material(){
