@@ -5,7 +5,7 @@ Board::Board(){
   this->initialize_side_key();
   this->initialize_mvvlva_scores();
 
-  char starting_fen[] = "k1r5/ppp5/1p6/4n1PP/1p6/6P1/5PPP/5R1K w - 0 1";
+  char starting_fen[] = "k1r5/ppp5/1p6/6PP/1p6/8/5PPP/5R1K w - 0 1";
   this->set_fen(starting_fen);
 
   this->update_lists_material();
@@ -418,12 +418,6 @@ bool Board::make_move(Move move){
 
     this->fifty_move_counter++;
 
-    // if(move.get_repr() == "e1Pg4Pf3P"){
-    //   std::cout << "\n\n\n\n\n\n";
-    //   std::cout << move.get_repr() << std::endl;
-    //   this->print();
-    // }
-
     for(int i = 0; i < move.get_move_size(); i++){
       int add_square = move.get_add_square(i);
       int add_piece = move.get_add_piece(i);
@@ -435,11 +429,6 @@ bool Board::make_move(Move move){
       ASSERT(this->pieces[add_square] == EMPTY);
       this->add_piece(add_piece, add_square);
     }
-
-    // if(move.get_repr() == "e1Pg4Pf3P"){
-    //   this->print();
-    //   std::cout << "\n\n\n\n\n\n";
-    // }
 
     this->side_to_move = this->side_to_move == 0 ? 1 : 0;
     HASH_SIDE;

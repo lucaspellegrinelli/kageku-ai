@@ -1,5 +1,27 @@
 #include "ai.h"
 
+int AI::evaluate_board(Board *board){
+  int material = board->material[WHITE] - board->material[BLACK];
+  int mana = board->mana[WHITE] - board->mana[BLACK];
+  int score = material + mana;
+
+  for(int i = 0; i < board->piece_count[wP]; i++){
+    int square = board->piece_list[wP][i];
+    score += std::pow(1, SQUARE_RANK[square]);
+  }
+
+  for(int i = 0; i < board->piece_count[bP]; i++){
+    int square = board->piece_list[bP][i];
+    score -= std::pow(1, (RANK_8 - SQUARE_RANK[square]));
+  }
+
+  if(board->side_to_move == WHITE){
+    return score;
+  }else{
+    return -score;
+  }
+}
+
 Move AI::search_position(Board *board, SearchInfo *info){
   Move best_move = Move::unvalid_move();
   int best_score = -INFINITE;
@@ -21,31 +43,6 @@ Move AI::search_position(Board *board, SearchInfo *info){
   }
 
   return best_move;
-}
-
-int AI::evaluate_board(Board *board){
-  int material = board->material[WHITE] - board->material[BLACK];
-  int mana = board->mana[WHITE] - board->mana[BLACK];
-  int score = material + mana;
-
-  int white_pawn_value = 0;
-  int black_pawn_value = 0;
-
-  for(int i = 0; i < board->piece_count[wP]; i++){
-    white_pawn_value += std::pow(2, SQUARE_RANK[board->piece_list[wP][i]] + 3);
-  }
-
-  for(int i = 0; i < board->piece_count[bP]; i++){
-    black_pawn_value += std::pow(2, (RANK_8 - SQUARE_RANK[board->piece_list[bP][i]]) + 3);
-  }
-
-  score += (white_pawn_value - black_pawn_value);
-
-  if(board->side_to_move == WHITE){
-    return score;
-  }else{
-    return -score;
-  }
 }
 
 void AI::check_up(){
@@ -143,8 +140,12 @@ int AI::alpha_beta(int alpha, int beta, int depth, Board *board, SearchInfo *inf
       alpha = score;
       best_move = move_list.moves[i];
 
-      if(!move_list.moves[i].is_capture() && best_move.is_move()){
-        board->search_history[board->pieces[best_move.get_from()]][best_move.get_to()] += depth;
+      if(!move_list.moves[i].is_capture()){
+        if(best_move.is_move()){
+          board->search_history[board->pieces[best_move.get_from()]][best_move.get_to()] += depth;
+        }else if(best_move.is_add()){
+          board->search_history[best_move.get_add_piece(0)][best_move.get_add_square(0)] += depth;
+        }
       }
     }
   }

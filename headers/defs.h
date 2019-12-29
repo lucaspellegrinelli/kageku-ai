@@ -18,14 +18,12 @@ typedef unsigned long long U64;
 // Maximum number of adds a move can have
 #define MAX_ADD_PER_MOVE 1
 
-#define NOMOVE 0
-
-#define PV_TABLE_ENTRY_COUNT 100000000
+#define PV_TABLE_ENTRY_COUNT 10000000
 
 #define MAX_DEPTH 64
 
-#define INFINITE 20000
-#define MATE 10000
+#define INFINITE 4000000
+#define MATE 3000000
 
 // Flags for colors (BOTH - Respresents pieces of either color)
 #define COLOR_COUNT 2
