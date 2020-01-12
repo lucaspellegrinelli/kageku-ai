@@ -1,6 +1,16 @@
 # Kageku Engine
 
-This is an ongoing project of mine to create a engine that plays the game "Kageku". If you don't know what "Kageku" is, check out my other repo https://github.com/lucaspellegrinelli/kageku where I explain what it is, why it exists and provide a python package for playing it.
+## What is Kageku?
+
+Kageku is a board game created as one of the mini games inside a RPG me and my friends play. More information about how it works in the repository of the python package created to play it: https://github.com/lucaspellegrinelli/kageku
+
+## What is an engine?
+
+An engine in the chess world is a common name for the artificial inteligences that play the game. Since Kageku is inspired by chess, I decided to use this term for the project.
+
+## Why did you create this engine?
+
+I'm a tryhard when it comes to competitive games. So I wanted to practice this game to have an edge on the other players when we play it on the RPG so I can get more money to buy my weapons and destroy them *evil laugh*.
 
 ### Inspirations
 
