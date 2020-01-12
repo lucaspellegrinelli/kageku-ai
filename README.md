@@ -12,6 +12,10 @@ An engine in the chess world is a common name for the artificial inteligences th
 
 I'm a tryhard when it comes to competitive games. So I wanted to practice this game to have an edge on the other players when we play it on the RPG so I can get more money to buy my weapons and destroy them *evil laugh*.
 
+## Next steps
+
+- Create a proper heuristic function since all the search functions like Alpha-Beta, Quiescence, MVV LVA and stuff are already implemented. So to improve move ordering (and in consequence improve efficiency) and move quality this is crucial. Right now I'm thinking in what variables to take in consideration to create this.
+
 ### Inspirations
 
-This engine is heavely inspired in a great series of videos "Programming A Chess Engine in C" by Bluefever Software on youtube. I used lots of tricks he teachs about how to optimize the code as best as possible. The main difference about the code in the video series and my code is the language (he's using pure C, I decided to use C++ and Object-Oriented Programming since I'm more familiar with it) and the game itself since although Kageku is inspired by Chess and both share a lot of rules, there are obviously some of them that are very different (for example the "spawning pieces with mana" thing on Kageku).
+This engine is inspired in a great series of videos "Programming A Chess Engine in C" by Bluefever Software on youtube.
